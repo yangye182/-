@@ -1,0 +1,9 @@
+Card UI assets (CC0 1.0)
+
+- Kenney UI Pack — card frames (button gradients)
+  https://kenney.nl/assets/ui-pack
+
+- Kenney Board Game Icons — type icons (sword, shield, fire, card outline)
+  https://kenney.nl/assets/board-game-icons
+
+Free for commercial use. Attribution appreciated but not required.

@@ -1,0 +1,13 @@
+# Godot 4+
+.godot/
+.import/
+export/
+export_presets.cfg
+
+# OS / Editor
+.DS_Store
+*.swp
+*.swo
+
+# Kenney 完整包仅本地保留，仓库只提交 assets/cards 用到的切片
+assets/kenney/

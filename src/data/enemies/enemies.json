@@ -1,0 +1,57 @@
+[
+  {
+    "id": "rust_sentinel",
+    "name": "Rust Sentinel",
+    "name_zh": "锈蚀哨兵",
+    "hp": 38,
+    "pattern": [
+      {"type": "attack", "value": 7, "desc": "Slash 7", "desc_zh": "挥砍 7"},
+      {"type": "attack", "value": 9, "desc": "Heavy 9", "desc_zh": "重击 9"},
+      {"type": "debuff_rust", "value": 0, "desc": "Rust", "desc_zh": "锈蚀"}
+    ]
+  },
+  {
+    "id": "rust_sentinel_elite",
+    "name": "Rust Sentinel (Elite)",
+    "name_zh": "锈蚀哨兵·精英",
+    "hp": 58,
+    "pattern": [
+      {"type": "block", "value": 10, "desc": "Guard 10", "desc_zh": "防御 10"},
+      {"type": "attack", "value": 12, "desc": "Smash 12", "desc_zh": "猛击 12"},
+      {"type": "attack", "value": 6, "desc": "Quick 6", "desc_zh": "连击 6"},
+      {"type": "debuff_rust", "value": 0, "desc": "Rust", "desc_zh": "锈蚀"}
+    ]
+  },
+  {
+    "id": "stone_golem",
+    "name": "Stone Golem",
+    "name_zh": "遗迹石魔",
+    "hp": 52,
+    "pattern": [
+      {"type": "block", "value": 8, "desc": "Harden 8", "desc_zh": "石化 8"},
+      {"type": "attack", "value": 5, "desc": "Rubble 5", "desc_zh": "碎石 5"},
+      {"type": "attack", "value": 18, "desc": "Slam 18", "desc_zh": "蓄力猛击 18"}
+    ]
+  },
+  {
+    "id": "shadow_acolyte",
+    "name": "Shadow Acolyte",
+    "name_zh": "暗影信徒",
+    "hp": 42,
+    "pattern": [
+      {"type": "steal_blue", "value": 2, "desc": "Steal 2 Blue", "desc_zh": "偷取精神力 2"},
+      {"type": "attack", "value": 8, "desc": "Shadow Bolt 8", "desc_zh": "暗影箭 8"}
+    ]
+  },
+  {
+    "id": "rust_colossus",
+    "name": "Rust Colossus",
+    "name_zh": "锈蚀巨像",
+    "hp": 120,
+    "pattern": [
+      {"type": "attack", "value": 10, "desc": "Crush 10", "desc_zh": "碾压 10"},
+      {"type": "block", "value": 15, "desc": "Iron Wall 15", "desc_zh": "铁壁 15"},
+      {"type": "attack", "value": 16, "desc": "Quake 16", "desc_zh": "震地 16"}
+    ]
+  }
+]

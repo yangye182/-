@@ -1,0 +1,320 @@
+[gd_scene load_steps=8 format=3 uid="uid://voidtower_main"]
+
+[ext_resource type="Script" path="res://src/game_flow.gd" id="1_flow"]
+[ext_resource type="Script" path="res://src/ui/menu/main_menu.gd" id="2_menu"]
+[ext_resource type="Script" path="res://src/ui/map/map_screen.gd" id="3_map"]
+[ext_resource type="Script" path="res://src/ui/map/map_route_view.gd" id="6_route"]
+[ext_resource type="Script" path="res://src/ui/battle/battle_screen.gd" id="4_battle"]
+[ext_resource type="Script" path="res://src/core/battle/battle_manager.gd" id="5_battle_mgr"]
+[ext_resource type="Script" path="res://src/ui/shop/shop_screen.gd" id="7_shop"]
+
+[node name="Main" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_flow")
+
+[node name="MenuLayer" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_menu")
+
+[node name="VBox" type="VBoxContainer" parent="MenuLayer"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -120.0
+offset_top = -60.0
+offset_right = 120.0
+offset_bottom = 60.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Title" type="Label" parent="MenuLayer/VBox"]
+layout_mode = 2
+text = "Void Tower"
+horizontal_alignment = 1
+
+[node name="StartButton" type="Button" parent="MenuLayer/VBox"]
+layout_mode = 2
+text = "Start Run"
+
+[node name="QuitButton" type="Button" parent="MenuLayer/VBox"]
+layout_mode = 2
+text = "Quit"
+
+[node name="MapLayer" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("3_map")
+
+[node name="MapHeader" type="PanelContainer" parent="MapLayer"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 56.0
+grow_horizontal = 2
+
+[node name="HeaderBox" type="HBoxContainer" parent="MapLayer/MapHeader"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="StatsLabel" type="Label" parent="MapLayer/MapHeader/HeaderBox"]
+layout_mode = 2
+text = "HP / Gold"
+
+[node name="InfoLabel" type="Label" parent="MapLayer/MapHeader/HeaderBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Pick a node"
+horizontal_alignment = 2
+
+[node name="Scroll" type="ScrollContainer" parent="MapLayer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 60.0
+offset_left = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 2
+
+[node name="MapCenter" type="CenterContainer" parent="MapLayer/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="MapRouteView" type="Control" parent="MapLayer/Scroll/MapCenter"]
+custom_minimum_size = Vector2(520, 480)
+layout_mode = 2
+script = ExtResource("6_route")
+
+[node name="BattleLayer" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("4_battle")
+
+[node name="BattleManager" type="Node" parent="BattleLayer"]
+script = ExtResource("5_battle_mgr")
+
+[node name="EnemyPanel" type="Panel" parent="BattleLayer"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 700.0
+offset_bottom = 200.0
+
+[node name="EnemyContainer" type="HBoxContainer" parent="BattleLayer/EnemyPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 16
+
+[node name="PlayerPanel" type="Panel" parent="BattleLayer"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 210.0
+offset_right = 400.0
+offset_bottom = 300.0
+
+[node name="HPLabel" type="Label" parent="BattleLayer/PlayerPanel"]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 200.0
+offset_bottom = 36.0
+text = "HP"
+
+[node name="BlockLabel" type="Label" parent="BattleLayer/PlayerPanel"]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 40.0
+offset_right = 200.0
+offset_bottom = 64.0
+text = "Block"
+
+[node name="EnergyLabel" type="Label" parent="BattleLayer/PlayerPanel"]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 68.0
+offset_right = 380.0
+offset_bottom = 92.0
+text = "Energy"
+
+[node name="LogPanel" type="Panel" parent="BattleLayer"]
+layout_mode = 0
+offset_left = 420.0
+offset_top = 210.0
+offset_right = 900.0
+offset_bottom = 300.0
+
+[node name="LogLabel" type="Label" parent="BattleLayer/LogPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+autowrap_mode = 3
+text = "Battle log"
+
+[node name="BottomPanel" type="Panel" parent="BattleLayer"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -260.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="HandContainer" type="HBoxContainer" parent="BattleLayer/BottomPanel"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 8.0
+offset_right = 1100.0
+offset_bottom = 240.0
+theme_override_constants/separation = 12
+
+[node name="EndTurnButton" type="Button" parent="BattleLayer/BottomPanel"]
+layout_mode = 0
+offset_left = 920.0
+offset_top = 80.0
+offset_right = 1020.0
+offset_bottom = 120.0
+text = "End Turn"
+
+[node name="VictoryPanel" type="Panel" parent="BattleLayer"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -80.0
+offset_right = 150.0
+offset_bottom = 80.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VictoryLabel" type="Label" parent="BattleLayer/VictoryPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 40.0
+grow_horizontal = 2
+text = "Victory"
+horizontal_alignment = 1
+
+[node name="ContinueButton" type="Button" parent="BattleLayer/VictoryPanel"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -60.0
+offset_top = -50.0
+offset_right = 60.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "Continue"
+
+[node name="ShopLayer" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("7_shop")
+
+[node name="Panel" type="PanelContainer" parent="ShopLayer"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -420.0
+offset_top = -280.0
+offset_right = 420.0
+offset_bottom = 280.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="ShopLayer/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Title" type="Label" parent="ShopLayer/Panel/VBox"]
+layout_mode = 2
+text = "Shop"
+horizontal_alignment = 1
+
+[node name="Header" type="HBoxContainer" parent="ShopLayer/Panel/VBox"]
+layout_mode = 2
+
+[node name="GoldLabel" type="Label" parent="ShopLayer/Panel/VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Gold: 0"
+
+[node name="CardsRow" type="HBoxContainer" parent="ShopLayer/Panel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="MsgLabel" type="Label" parent="ShopLayer/Panel/VBox"]
+layout_mode = 2
+text = ""
+horizontal_alignment = 1
+
+[node name="Actions" type="HBoxContainer" parent="ShopLayer/Panel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="RemoveButton" type="Button" parent="ShopLayer/Panel/VBox/Actions"]
+layout_mode = 2
+text = "Remove card"
+
+[node name="LeaveButton" type="Button" parent="ShopLayer/Panel/VBox/Actions"]
+layout_mode = 2
+text = "Leave"

@@ -1,0 +1,9 @@
+[gd_resource type="Theme" load_steps=2 format=3]
+
+[ext_resource type="FontFile" uid="uid://b4ql21v5fqixa" path="res://assets/fonts/NotoSansSC-Regular.otf" id="1_noto"]
+
+[resource]
+default_font = ExtResource("1_noto")
+default_font_size = 18
+Button/font_sizes/font_size = 16
+Label/font_sizes/font_size = 18

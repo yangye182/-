@@ -1,0 +1,26 @@
+[
+  {
+    "id": "knight_oath",
+    "name": "Knight's Oath",
+    "name_zh": "骑士誓言",
+    "description": "Gain 2 Block on turn 1 each combat.",
+    "description_zh": "每场战斗首回合获得 2 点临时护甲。",
+    "rarity": "starter"
+  },
+  {
+    "id": "worn_charm",
+    "name": "Worn Charm",
+    "name_zh": "破旧护符",
+    "description": "Max Blue +1.",
+    "description_zh": "精神力上限 +1。",
+    "rarity": "common"
+  },
+  {
+    "id": "red_blue_wheel",
+    "name": "Red-Blue Wheel",
+    "name_zh": "红蓝转轮",
+    "description": "Convert 1 Red to 1 Blue per turn (not wired yet).",
+    "description_zh": "每回合可将 1 点红能化为 1 点蓝能（原型未实现）。",
+    "rarity": "uncommon"
+  }
+]

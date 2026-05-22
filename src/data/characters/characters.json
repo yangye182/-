@@ -1,0 +1,35 @@
+[
+  {
+    "id": "void_knight",
+    "name": "Void Knight",
+    "name_zh": "虚空骑士",
+    "max_hp": 70,
+    "red_per_turn": 3,
+    "blue_max": 4,
+    "blue_gain": 1,
+    "description": "Balanced Red/Blue build.",
+    "description_zh": "均衡型，红蓝兼修。"
+  },
+  {
+    "id": "soul_pyromancer",
+    "name": "Soul Pyromancer",
+    "name_zh": "魂火术士",
+    "max_hp": 55,
+    "red_per_turn": 2,
+    "blue_max": 8,
+    "blue_gain": 2,
+    "description": "Blue-focused (locked).",
+    "description_zh": "精神力特化（需解锁）。"
+  },
+  {
+    "id": "blade_assassin",
+    "name": "Blade Assassin",
+    "name_zh": "碎刃刺客",
+    "max_hp": 60,
+    "red_per_turn": 4,
+    "blue_max": 2,
+    "blue_gain": 1,
+    "description": "Red combo (locked).",
+    "description_zh": "体力连击（需解锁）。"
+  }
+]
