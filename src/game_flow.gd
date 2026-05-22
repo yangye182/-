@@ -14,11 +14,13 @@ var pending_rift_rule: String = ""
 @onready var map_layer: Control = $MapLayer
 @onready var battle_layer: Control = $BattleLayer
 @onready var shop_layer: Control = $ShopLayer
+@onready var event_layer: Control = $EventLayer
 
 
 func _ready() -> void:
 	_apply_ui_font()
 	shop_layer.shop_finished.connect(_on_shop_finished)
+	event_layer.event_finished.connect(_on_event_finished)
 	_show_menu()
 
 
@@ -48,6 +50,7 @@ func _open_map() -> void:
 	map_layer.visible = true
 	battle_layer.visible = false
 	shop_layer.visible = false
+	event_layer.visible = false
 	map_layer.refresh()
 
 
@@ -60,7 +63,23 @@ func _open_shop() -> void:
 	shop_layer.open_shop()
 
 
+func _open_event() -> void:
+	current_scene = Scene.MAP
+	menu_layer.visible = false
+	map_layer.visible = false
+	battle_layer.visible = false
+	shop_layer.visible = false
+	event_layer.visible = true
+	event_layer.open_event()
+
+
 func _on_shop_finished() -> void:
+	var n: MapNodeData = RunState.map_nodes[RunState.current_node_id]
+	MapProgress.advance_from(n, RunState.map_nodes)
+	_open_map()
+
+
+func _on_event_finished() -> void:
 	var n: MapNodeData = RunState.map_nodes[RunState.current_node_id]
 	MapProgress.advance_from(n, RunState.map_nodes)
 	_open_map()
@@ -107,9 +126,8 @@ func enter_node(node_id: int) -> void:
 			MapProgress.lock_all(nodes)
 			_open_shop()
 		MapNodeData.NodeType.EVENT:
-			RunState.gold += 20
-			MapProgress.advance_from(n, nodes)
-			_open_map()
+			MapProgress.lock_all(nodes)
+			_open_event()
 		MapNodeData.NodeType.RUNE_FORGE, MapNodeData.NodeType.SAGE_ALTAR:
 			MapProgress.advance_from(n, nodes)
 			_open_map()

@@ -111,6 +111,14 @@ func _style_node_button(btn: Button, nd: MapNodeData) -> void:
 			fc = Color(0.8, 0.55, 1.0)
 		MapNodeData.NodeType.REST:
 			fc = Color(0.55, 0.85, 1.0)
+		MapNodeData.NodeType.SHOP:
+			fc = Color(1.0, 0.85, 0.4)
+		MapNodeData.NodeType.EVENT:
+			fc = Color(0.6, 0.9, 0.9)
+		MapNodeData.NodeType.RUNE_FORGE:
+			fc = Color(1.0, 0.7, 0.5)
+		MapNodeData.NodeType.SAGE_ALTAR:
+			fc = Color(0.7, 0.6, 1.0)
 	btn.add_theme_color_override("font_color", fc)
 
 
