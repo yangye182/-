@@ -19,6 +19,11 @@ var intent_type: String = "attack"
 var intent_value: int = 0
 var intent_desc: String = ""
 
+## 反击值：被攻击时对攻击者造成等量伤害
+var retaliate: int = 0
+## 减伤屏障：每次受到伤害减 N 点（下限 0）
+var damage_barrier: int = 0
+
 
 func set_intent(type: String, value: int, desc: String) -> void:
 	intent_type = type
@@ -43,6 +48,9 @@ func take_damage(amount: int, _ignore_block: bool = false) -> int:
 	if is_dead:
 		return 0
 	var dmg := amount
+	# 玩家减伤屏障
+	if is_player and damage_barrier > 0 and not _ignore_block:
+		dmg = maxi(dmg - damage_barrier, 0)
 	if not _ignore_block and block > 0:
 		var absorbed := mini(block, dmg)
 		block -= absorbed

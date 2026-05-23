@@ -1,11 +1,8 @@
-## 贤者祭坛：花费金币为牌组中选型卡牌选择进化分支
+## 贤者祭坛：进化卡牌（单张独立进化）
 extends Control
-
-const CardWidgetScene := preload("res://src/ui/card/card_widget.gd")
 
 signal sage_finished
 
-var _built: bool = false
 var _gold_label: Label
 var _msg_label: Label
 var _hint_label: Label
@@ -15,22 +12,19 @@ var _paths_row: HBoxContainer
 var _back_btn: Button
 var _leave_btn: Button
 
-var _selected_base: String = ""
+## 当前牌组中可进化的卡牌列表（带牌组索引）
+var _evolvable_instances: Array[Dictionary] = []
+## 当前选中的卡牌在牌组中的索引
+var _selected_deck_index: int = -1
 
 
 func _ready() -> void:
-	_build_ui()
+	_build_refs()
 	_apply_locale()
 
 
-func _build_ui() -> void:
-	if _built:
-		return
-	_built = true
-
-	var panel := $Panel
-	var root: VBoxContainer = panel.get_node("VBox")
-
+func _build_refs() -> void:
+	var root: VBoxContainer = $Panel/VBox
 	_gold_label = root.get_node("Header/GoldLabel")
 	_hint_label = root.get_node("HintLabel")
 	_msg_label = root.get_node("MsgLabel")
@@ -47,8 +41,8 @@ func _build_ui() -> void:
 func _apply_locale() -> void:
 	$Panel/VBox/Title.text = GameLocale.t("Sage Altar", "贤者祭坛")
 	_hint_label.text = GameLocale.t(
-		"Spend gold to evolve a card type (all copies upgrade).",
-		"花费金币选择进化分支（该牌型全部张数一并升级）。"
+		"Evolve a card for free and restore 15 HP.",
+		"免费进化一张卡牌，并恢复 15 点生命。"
 	)
 	_back_btn.text = GameLocale.t("Back", "返回")
 	_leave_btn.text = GameLocale.t("Leave Altar", "离开祭坛")
@@ -61,17 +55,38 @@ func _apply_locale() -> void:
 
 
 func open_altar() -> void:
-	_selected_base = ""
+	_selected_deck_index = -1
+	_build_evolvable()
 	_refresh()
+
+
+## 扫描牌组，收集可进化的卡牌
+func _build_evolvable() -> void:
+	_evolvable_instances.clear()
+	var counter: Dictionary = {}
+	for i in RunState.deck_ids.size():
+		var cid := RunState.deck_ids[i]
+		counter[cid] = counter.get(cid, 0) + 1
+		var key := "%s@%d" % [cid, counter[cid]]
+		if RunState.evolution_map.has(key):
+			continue  # 已进化
+		var data := GameDB.get_card(cid)
+		if data and not data.evolves_to.is_empty():
+			_evolvable_instances.append({
+				"deck_index": i,
+				"card_id": cid,
+				"data": data,
+				"key": key,
+			})
 
 
 func _refresh() -> void:
 	_gold_label.text = GameLocale.t("Gold: %d" % RunState.gold, "金币: %d" % RunState.gold)
-	_back_btn.visible = _selected_base != ""
-	_paths_row.visible = _selected_base != ""
-	_pick_scroll.visible = _selected_base == ""
+	_back_btn.visible = _selected_deck_index >= 0
+	_paths_row.visible = _selected_deck_index >= 0
+	_pick_scroll.visible = _selected_deck_index < 0
 
-	if _selected_base == "":
+	if _selected_deck_index < 0:
 		_show_pick_cards()
 	else:
 		_show_paths()
@@ -83,49 +98,45 @@ func _show_pick_cards() -> void:
 	for c in _paths_row.get_children():
 		c.queue_free()
 
-	var ids := SageAltarService.get_evolveable_ids()
-	if ids.is_empty():
+	if _evolvable_instances.is_empty():
 		_msg_label.text = GameLocale.t(
-			"No cards here can evolve. Leave to continue.",
-			"当前牌组没有可进化的卡牌，请离开祭坛。"
+			"No cards can be evolved here.",
+			"没有可以进化的卡牌。"
 		)
 		return
 
-	_msg_label.text = GameLocale.t("Choose a card to evolve", "选择要进化的卡牌")
-	for base_id in ids:
-		var data := GameDB.get_card(base_id)
-		if data == null:
-			continue
-		var cost := GameDB.get_evolution_cost(base_id)
+	_msg_label.text = GameLocale.t("Select a card to evolve", "选择要进化的卡牌")
+
+	for ev in _evolvable_instances:
+		var data: CardData = ev["data"]
+		var idx: int = ev["deck_index"]
+
 		var box := VBoxContainer.new()
 		box.add_theme_constant_override("separation", 6)
-		var card_ui = CardWidgetScene.new()
-		var cnt := RunState.count_cards(base_id)
-		card_ui.setup(data, false)
-		box.add_child(card_ui)
+
+		var btn := Button.new()
+		btn.custom_minimum_size = Vector2(140, 48)
+		btn.text = "%s #%d" % [data.get_display_name(), idx + 1]
+		UiFonts.apply_font_to(btn, 13)
+		var cap_idx := idx
+		btn.pressed.connect(func(): _on_pick_card(cap_idx))
+		box.add_child(btn)
+
 		var info := Label.new()
+		var branch_count := data.evolves_to.size()
 		info.text = GameLocale.t(
-			"x%d  |  %d gold" % [cnt, cost],
-			"×%d  |  %d 金币" % [cnt, cost]
+			"%d options" % branch_count,
+			"%d 种分支" % branch_count
 		)
 		info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		UiFonts.apply_font_to(info, 12)
 		box.add_child(info)
-		var pick_btn := Button.new()
-		pick_btn.text = GameLocale.t("Select", "选择")
-		pick_btn.disabled = not SageAltarService.can_afford(base_id)
-		UiFonts.apply_font_to(pick_btn, 13)
-		var bid := base_id
-		pick_btn.pressed.connect(func(): _on_pick_card(bid))
-		box.add_child(pick_btn)
+
 		_pick_row.add_child(box)
 
 
-func _on_pick_card(base_id: String) -> void:
-	if not SageAltarService.can_afford(base_id):
-		_msg_label.text = GameLocale.t("Not enough gold!", "金币不足！")
-		return
-	_selected_base = base_id
+func _on_pick_card(deck_index: int) -> void:
+	_selected_deck_index = deck_index
 	_refresh()
 
 
@@ -133,65 +144,75 @@ func _show_paths() -> void:
 	for c in _paths_row.get_children():
 		c.queue_free()
 
-	var base_data := GameDB.get_card(_selected_base)
-	var cost := GameDB.get_evolution_cost(_selected_base)
+	# 查找当前选中的卡牌数据
+	var ev: Dictionary
+	var found := false
+	for e in _evolvable_instances:
+		if e["deck_index"] == _selected_deck_index:
+			ev = e
+			found = true
+			break
+	if not found:
+		_selected_deck_index = -1
+		_refresh()
+		return
+
+	var data: CardData = ev["data"]
 	_msg_label.text = GameLocale.t(
-		"Evolve [%s] — %d gold (all copies)" % [base_data.get_display_name() if base_data else _selected_base, cost],
-		"进化【%s】— 消耗 %d 金币（全部张数）" % [base_data.get_display_name() if base_data else _selected_base, cost]
+		"Evolve [%s] — choose a path" % data.get_display_name(),
+		"进化【%s】— 选择路径" % data.get_display_name()
 	)
 
-	# 当前卡预览
-	if base_data:
-		var cur_box := VBoxContainer.new()
-		cur_box.add_theme_constant_override("separation", 4)
-		var cur_lbl := Label.new()
-		cur_lbl.text = GameLocale.t("Current", "当前")
-		cur_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		UiFonts.apply_font_to(cur_lbl, 12)
-		cur_box.add_child(cur_lbl)
-		var cur_card = CardWidgetScene.new()
-		cur_card.setup(base_data, false)
-		cur_box.add_child(cur_card)
-		_paths_row.add_child(cur_box)
+	for branch in data.evolves_to:
+		var branch_data: Dictionary = branch as Dictionary
+		var target_id: String = branch_data.get("id", "")
+		var cost: int = branch_data.get("cost", 50)
+		var desc_en: String = branch_data.get("desc_en", "")
+		var desc_zh: String = branch_data.get("desc_zh", "")
+		var target_data := GameDB.get_card(target_id)
 
-	var arrow := Label.new()
-	arrow.text = "→"
-	arrow.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	UiFonts.apply_font_to(arrow, 24)
-	_paths_row.add_child(arrow)
-
-	for path in GameDB.get_evolution_paths(_selected_base):
-		var to_id: String = path.get("to_id", "")
-		var to_data := GameDB.get_card(to_id)
-		if to_data == null:
-			continue
 		var path_box := VBoxContainer.new()
 		path_box.add_theme_constant_override("separation", 8)
-		var card_ui = CardWidgetScene.new()
-		card_ui.setup(to_data, false)
-		path_box.add_child(card_ui)
+
+		var name_lbl := Label.new()
+		name_lbl.text = target_data.get_display_name() if target_data else target_id
+		name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		UiFonts.apply_font_to(name_lbl, 15)
+		path_box.add_child(name_lbl)
+
+		var desc_lbl := Label.new()
+		desc_lbl.text = GameLocale.t(desc_en, desc_zh)
+		desc_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		desc_lbl.custom_minimum_size = Vector2(160, 0)
+		UiFonts.apply_font_to(desc_lbl, 12)
+		path_box.add_child(desc_lbl)
+
 		var evolve_btn := Button.new()
-		evolve_btn.text = GameLocale.t("Evolve", "进化")
-		evolve_btn.disabled = not SageAltarService.can_afford(_selected_base)
+		evolve_btn.text = GameLocale.t(
+			"Evolve (Free + Heal 15 HP)",
+			"进化（免费+治疗15点）"
+		)
 		UiFonts.apply_font_to(evolve_btn, 14)
-		var tid := to_id
-		evolve_btn.pressed.connect(func(): _on_evolve(tid))
+		var cap_idx := _selected_deck_index
+		var cap_target := target_id
+		evolve_btn.pressed.connect(func(): _on_evolve(cap_idx, cap_target))
 		path_box.add_child(evolve_btn)
+
 		_paths_row.add_child(path_box)
 
 
-func _on_evolve(to_id: String) -> void:
-	if SageAltarService.evolve(_selected_base, to_id):
-		var data := GameDB.get_card(to_id)
-		var name_str := data.get_display_name() if data else to_id
-		_msg_label.text = GameLocale.t("Evolved to [%s]!" % name_str, "已进化为【%s】！" % name_str)
-		sage_finished.emit()
-	else:
-		_msg_label.text = GameLocale.t("Evolution failed.", "进化失败。")
+func _on_evolve(deck_index: int, target_id: String) -> void:
+	RunState.evolve_card_at(deck_index, target_id)
+	RunState.current_hp = mini(RunState.current_hp + 15, RunState.max_hp)
+	var target_data := GameDB.get_card(target_id)
+	var name_str := target_data.get_display_name() if target_data else target_id
+	_msg_label.text = GameLocale.t("Evolved to [%s]!" % name_str, "已进化为【%s】！" % name_str)
+	sage_finished.emit()
 
 
 func _on_back() -> void:
-	_selected_base = ""
+	_selected_deck_index = -1
 	_refresh()
 
 

@@ -1,16 +1,22 @@
 extends Control
 
+signal back_to_menu_pressed
+
 @onready var route_view: MapRouteView = $Scroll/MapCenter/MapRouteView
 @onready var info_label: Label = $MapHeader/HeaderBox/InfoLabel
 @onready var stats_label: Label = $MapHeader/HeaderBox/StatsLabel
 @onready var backpack_btn: Button = $MapHeader/HeaderBox/BackpackButton
+@onready var return_btn: Button = $MapHeader/HeaderBox/ReturnButton
 
 
 func _ready() -> void:
 	route_view.node_pressed.connect(_on_node_pressed)
 	backpack_btn.pressed.connect(_on_backpack_pressed)
+	return_btn.pressed.connect(_on_return_pressed)
 	UiFonts.apply_font_to(backpack_btn, 14)
+	UiFonts.apply_font_to(return_btn, 14)
 	backpack_btn.text = GameLocale.t("Backpack", "背包")
+	return_btn.text = GameLocale.t("Return", "返回")
 
 
 func refresh() -> void:
@@ -28,8 +34,8 @@ func refresh() -> void:
 		]
 	)
 	info_label.text = GameLocale.t(
-		"One path up — gold lines lead to the BOSS at top",
-		"每层只能走一次，沿金色路线向上，顶层为 BOSS"
+		"Climb the tower — reach the BOSS at the top",
+		"向上攀登，顶层为 BOSS"
 	)
 
 
@@ -39,3 +45,7 @@ func _on_node_pressed(node_id: int) -> void:
 
 func _on_backpack_pressed() -> void:
 	get_parent().open_backpack()
+
+
+func _on_return_pressed() -> void:
+	back_to_menu_pressed.emit()

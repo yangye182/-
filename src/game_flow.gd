@@ -4,11 +4,63 @@ extends Control
 ## true = 中文 + 内嵌 Noto 字体；false = 英文 + Godot 默认字体
 const USE_CHINESE := true
 
+## 楼层敌人池配置
+const FLOOR_POOLS := [
+	null,  # index 0 unused
+	# floor 1-3
+	{ "combat": ["rust_sentinel", "shadow_acolyte", "void_crawler"], "elite": ["rust_sentinel_elite"], "hp_scale": 1.0 },
+	# floor 4-6
+	{ "combat": ["shadow_acolyte", "void_crawler", "crystal_spike"], "elite": ["shadow_priest", "void_behemoth"], "hp_scale": 1.3 },
+	# floor 7-8
+	{ "combat": ["void_crawler", "crystal_spike"], "elite": ["void_behemoth", "crystal_warden"], "hp_scale": 1.6 },
+]
+
+const BOSS_POOL := ["rust_colossus", "shadow_lord", "void_dragon"]
+
+
+static func _get_floor_config(layer_index: int) -> Dictionary:
+	if layer_index <= 3:
+		return FLOOR_POOLS[1]
+	elif layer_index <= 6:
+		return FLOOR_POOLS[2]
+	else:
+		return FLOOR_POOLS[3]
+
+
+static func _pick_from_pool(pool: Array) -> String:
+	return pool[randi() % pool.size()]
+
+
+static func _make_combat_enemies(layer_index: int) -> Array[String]:
+	var cfg := _get_floor_config(layer_index)
+	var pool: Array = cfg["combat"]
+	var ids: Array[String] = []
+	ids.append(_pick_from_pool(pool))
+	ids.append(_pick_from_pool(pool))
+	return ids
+
+
+static func _make_elite_enemies(layer_index: int) -> Array[String]:
+	var cfg := _get_floor_config(layer_index)
+	var pool: Array = cfg["elite"]
+	return [_pick_from_pool(pool)]
+
+
+static func _make_boss_enemies() -> Array[String]:
+	return [BOSS_POOL[randi() % BOSS_POOL.size()]]
+
+
+static func _get_hp_scale(layer_index: int) -> float:
+	var cfg := _get_floor_config(layer_index)
+	return float(cfg.get("hp_scale", 1.0))
+
+
 enum Scene { MENU, CHARACTER_SELECT, MAP, BATTLE, SHOP, SAGE_ALTAR }
 
 var current_scene: Scene = Scene.MENU
 var pending_enemies: Array[String] = []
 var pending_rift_rule: String = ""
+var pending_hp_scale: float = 1.0
 
 @onready var menu_layer: Control = $MenuLayer
 @onready var character_select_layer: Control = $CharacterSelectLayer
@@ -18,6 +70,7 @@ var pending_rift_rule: String = ""
 @onready var event_layer: Control = $EventLayer
 @onready var backpack_layer: Control = $BackpackLayer
 @onready var sage_layer: Control = $SageAltarLayer
+@onready var reward_layer: Control = $RewardLayer
 
 
 func _ready() -> void:
@@ -28,6 +81,8 @@ func _ready() -> void:
 	event_layer.event_finished.connect(_on_event_finished)
 	sage_layer.sage_finished.connect(_on_sage_finished)
 	backpack_layer.backpack_closed.connect(_on_backpack_closed)
+	map_layer.back_to_menu_pressed.connect(_show_menu)
+	reward_layer.reward_finished.connect(_on_reward_finished)
 	_show_menu()
 
 
@@ -45,6 +100,7 @@ func _hide_all_layers() -> void:
 	event_layer.visible = false
 	sage_layer.visible = false
 	backpack_layer.visible = false
+	reward_layer.visible = false
 
 
 func _show_menu() -> void:
@@ -145,23 +201,27 @@ func enter_node(node_id: int) -> void:
 			_open_map()
 		MapNodeData.NodeType.COMBAT:
 			MapProgress.lock_all(nodes)
-			pending_enemies = _make_enemy_ids("rust_sentinel")
+			pending_enemies = _make_combat_enemies(n.layer_index)
 			pending_rift_rule = ""
+			pending_hp_scale = _get_hp_scale(n.layer_index)
 			_start_battle()
 		MapNodeData.NodeType.ELITE:
 			MapProgress.lock_all(nodes)
-			pending_enemies = _make_enemy_ids("rust_sentinel_elite")
+			pending_enemies = _make_elite_enemies(n.layer_index)
 			pending_rift_rule = ""
+			pending_hp_scale = _get_hp_scale(n.layer_index)
 			_start_battle()
 		MapNodeData.NodeType.VOID_RIFT:
 			MapProgress.lock_all(nodes)
-			pending_enemies = _make_enemy_ids("stone_golem")
+			pending_enemies = _make_combat_enemies(n.layer_index)
 			pending_rift_rule = n.rift_rule
+			pending_hp_scale = _get_hp_scale(n.layer_index)
 			_start_battle()
 		MapNodeData.NodeType.BOSS:
 			MapProgress.lock_all(nodes)
-			pending_enemies = _make_enemy_ids("rust_colossus")
+			pending_enemies = _make_boss_enemies()
 			pending_rift_rule = ""
+			pending_hp_scale = 1.0
 			_start_battle()
 		MapNodeData.NodeType.REST:
 			RunState.heal_percent(0.3)
@@ -174,8 +234,8 @@ func enter_node(node_id: int) -> void:
 			MapProgress.lock_all(nodes)
 			_open_event()
 		MapNodeData.NodeType.RUNE_FORGE:
-			MapProgress.advance_from(n, nodes)
-			_open_map()
+			MapProgress.lock_all(nodes)
+			_open_rune_forge()
 		MapNodeData.NodeType.SAGE_ALTAR:
 			MapProgress.lock_all(nodes)
 			_open_sage_altar()
@@ -184,17 +244,34 @@ func enter_node(node_id: int) -> void:
 			_open_map()
 
 
-func _make_enemy_ids(enemy_id: String) -> Array[String]:
-	var ids: Array[String] = []
-	ids.append(enemy_id)
-	return ids
+func _open_card_reward() -> void:
+	battle_layer.visible = false
+	reward_layer.visible = true
+	reward_layer.open_reward()
+
+
+func _open_rune_forge() -> void:
+	map_layer.visible = false
+	reward_layer.visible = true
+	reward_layer.open_reward(2)
+
+
+func _on_reward_finished() -> void:
+	var n: MapNodeData = RunState.map_nodes[RunState.current_node_id]
+	if n.type == MapNodeData.NodeType.RUNE_FORGE:
+		MapProgress.advance_from(n, RunState.map_nodes)
+	else:
+		MapProgress.unlock_children_from(n, RunState.map_nodes)
+	_open_map()
+
+
 
 
 func _start_battle() -> void:
 	current_scene = Scene.BATTLE
 	_hide_all_layers()
 	battle_layer.visible = true
-	battle_layer.start_battle(pending_enemies, pending_rift_rule)
+	battle_layer.start_battle(pending_enemies, pending_rift_rule, pending_hp_scale)
 
 
 func on_battle_finished(victory: bool) -> void:
@@ -206,7 +283,6 @@ func on_battle_finished(victory: bool) -> void:
 				CharacterProgress.unlock("blade_assassin")
 			_show_menu()
 			return
-		MapProgress.unlock_children_from(n, RunState.map_nodes)
-		_open_map()
+		_open_card_reward()
 	else:
 		_show_menu()

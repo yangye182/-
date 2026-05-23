@@ -9,6 +9,8 @@ const CARD_SIZE := Vector2(168, 228)
 var _data: CardData = null
 var _disabled: bool = false
 var _ui_built: bool = false
+var _hovered: bool = false
+var _selected: bool = false
 
 var _bg_tex: TextureRect
 var _icon_tex: TextureRect
@@ -23,6 +25,8 @@ var _price_label: Label
 func setup(card_data: CardData, disabled: bool = false, price: int = -1) -> void:
 	_data = card_data
 	_disabled = disabled
+	_hovered = false
+	_selected = false
 	_ensure_ui()
 	custom_minimum_size = CARD_SIZE
 	_apply_frame_texture(card_data.card_type)
@@ -48,8 +52,7 @@ func setup(card_data: CardData, disabled: bool = false, price: int = -1) -> void
 		_price_label.text = GameLocale.t("%d Gold" % price, "%d 金币" % price)
 	else:
 		_price_label.visible = false
-	modulate = Color(0.55, 0.55, 0.6, 1.0) if disabled else Color.WHITE
-	mouse_filter = Control.MOUSE_FILTER_IGNORE if disabled else Control.MOUSE_FILTER_STOP
+	_update_visual_state()
 
 
 func _ensure_ui() -> void:
@@ -58,6 +61,8 @@ func _ensure_ui() -> void:
 	_ui_built = true
 	custom_minimum_size = CARD_SIZE
 	clip_contents = true
+	mouse_entered.connect(_on_mouse_entered)
+	mouse_exited.connect(_on_mouse_exited)
 	# 底层卡轮廓图
 	_bg_tex = TextureRect.new()
 	_bg_tex.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -116,6 +121,41 @@ func _ensure_ui() -> void:
 	vbox.add_child(_price_label)
 	_price_label.visible = false
 	gui_input.connect(_on_gui_input)
+
+
+func set_selected(s: bool) -> void:
+	_selected = s
+	_update_visual_state()
+
+
+func _on_mouse_entered() -> void:
+	if _disabled:
+		return
+	_hovered = true
+	_update_visual_state()
+
+
+func _on_mouse_exited() -> void:
+	_hovered = false
+	_update_visual_state()
+
+
+func _update_visual_state() -> void:
+	if _disabled:
+		modulate = Color(0.55, 0.55, 0.6, 1.0)
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+		scale = Vector2(1.0, 1.0)
+		return
+	mouse_filter = Control.MOUSE_FILTER_STOP
+	if _selected:
+		scale = Vector2(1.08, 1.08)
+		modulate = Color(1.0, 1.0, 0.85, 1.0)
+	elif _hovered:
+		scale = Vector2(1.04, 1.04)
+		modulate = Color.WHITE
+	else:
+		scale = Vector2(1.0, 1.0)
+		modulate = Color.WHITE
 
 
 func _apply_frame_texture(card_type: CardData.CardType) -> void:

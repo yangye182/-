@@ -21,6 +21,8 @@ enum TargetType { NONE, ENEMY, ALL_ENEMIES, SELF }
 @export var effects: PackedStringArray = []
 @export var upgrade_id: String = ""
 @export var rarity: String = "common"
+## 进化分支：[{ "id": "card_id", "cost": 40, "desc_en": "...", "desc_zh": "..." }]
+@export var evolves_to: Array[Dictionary] = []
 
 
 func get_display_name() -> String:
@@ -46,6 +48,10 @@ static func from_dict(d: Dictionary) -> CardData:
 	c.heal = int(d.get("heal", 0))
 	c.upgrade_id = d.get("upgrade_id", "")
 	c.rarity = d.get("rarity", "common")
+	var ev = d.get("evolves_to", [])
+	if ev is Array:
+		for item in ev:
+			c.evolves_to.append(item)
 	match d.get("type", "attack"):
 		"attack": c.card_type = CardType.ATTACK
 		"skill": c.card_type = CardType.SKILL

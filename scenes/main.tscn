@@ -11,6 +11,7 @@
 [ext_resource type="Script" path="res://src/ui/backpack/backpack_screen.gd" id="9_backpack"]
 [ext_resource type="Script" path="res://src/ui/sage/sage_altar_screen.gd" id="10_sage"]
 [ext_resource type="Script" path="res://src/ui/character/character_select_screen.gd" id="11_char_select"]
+[ext_resource type="Script" path="res://src/ui/reward/card_reward_screen.gd" id="12_reward"]
 
 [node name="Main" type="Control" unique_id=1099211924]
 layout_mode = 3
@@ -201,6 +202,10 @@ size_flags_horizontal = 3
 text = "Pick a node"
 horizontal_alignment = 2
 
+[node name="ReturnButton" type="Button" parent="MapLayer/MapHeader/HeaderBox"]
+layout_mode = 2
+text = "Return"
+
 [node name="Scroll" type="ScrollContainer" parent="MapLayer" unique_id=541828708]
 layout_mode = 1
 anchors_preset = 15
@@ -237,139 +242,6 @@ script = ExtResource("4_battle")
 
 [node name="BattleManager" type="Node" parent="BattleLayer" unique_id=529526765]
 script = ExtResource("5_battle_mgr")
-
-[node name="EnemyPanel" type="Panel" parent="BattleLayer" unique_id=1352614504]
-layout_mode = 0
-offset_left = 16.0
-offset_top = 16.0
-offset_right = 700.0
-offset_bottom = 200.0
-
-[node name="EnemyContainer" type="HBoxContainer" parent="BattleLayer/EnemyPanel" unique_id=1792666908]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/separation = 16
-
-[node name="PlayerPanel" type="Panel" parent="BattleLayer" unique_id=644086865]
-layout_mode = 0
-offset_left = 16.0
-offset_top = 210.0
-offset_right = 400.0
-offset_bottom = 300.0
-
-[node name="HPLabel" type="Label" parent="BattleLayer/PlayerPanel" unique_id=98478337]
-layout_mode = 0
-offset_left = 12.0
-offset_top = 12.0
-offset_right = 200.0
-offset_bottom = 36.0
-text = "HP"
-
-[node name="BlockLabel" type="Label" parent="BattleLayer/PlayerPanel" unique_id=498845590]
-layout_mode = 0
-offset_left = 12.0
-offset_top = 40.0
-offset_right = 200.0
-offset_bottom = 64.0
-text = "Block"
-
-[node name="EnergyLabel" type="Label" parent="BattleLayer/PlayerPanel" unique_id=2038548415]
-layout_mode = 0
-offset_left = 12.0
-offset_top = 68.0
-offset_right = 380.0
-offset_bottom = 92.0
-text = "Energy"
-
-[node name="LogPanel" type="Panel" parent="BattleLayer" unique_id=556246058]
-layout_mode = 0
-offset_left = 420.0
-offset_top = 210.0
-offset_right = 900.0
-offset_bottom = 300.0
-
-[node name="LogLabel" type="Label" parent="BattleLayer/LogPanel" unique_id=1620213070]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 8.0
-offset_top = 8.0
-offset_right = -8.0
-offset_bottom = -8.0
-grow_horizontal = 2
-grow_vertical = 2
-text = "Battle log"
-autowrap_mode = 3
-
-[node name="BottomPanel" type="Panel" parent="BattleLayer" unique_id=661307945]
-layout_mode = 1
-anchors_preset = 12
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_top = -260.0
-grow_horizontal = 2
-grow_vertical = 0
-
-[node name="HandContainer" type="HBoxContainer" parent="BattleLayer/BottomPanel" unique_id=1976597409]
-layout_mode = 0
-offset_left = 16.0
-offset_top = 8.0
-offset_right = 1100.0
-offset_bottom = 240.0
-theme_override_constants/separation = 12
-
-[node name="EndTurnButton" type="Button" parent="BattleLayer/BottomPanel" unique_id=293867089]
-layout_mode = 0
-offset_left = 920.0
-offset_top = 80.0
-offset_right = 1020.0
-offset_bottom = 120.0
-text = "End Turn"
-
-[node name="VictoryPanel" type="Panel" parent="BattleLayer" unique_id=132038863]
-visible = false
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -150.0
-offset_top = -80.0
-offset_right = 150.0
-offset_bottom = 80.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="VictoryLabel" type="Label" parent="BattleLayer/VictoryPanel" unique_id=690405106]
-layout_mode = 1
-anchors_preset = 10
-anchor_right = 1.0
-offset_bottom = 40.0
-grow_horizontal = 2
-text = "Victory"
-horizontal_alignment = 1
-
-[node name="ContinueButton" type="Button" parent="BattleLayer/VictoryPanel" unique_id=825590552]
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -60.0
-offset_top = -50.0
-offset_right = 60.0
-offset_bottom = -10.0
-grow_horizontal = 2
-grow_vertical = 0
-text = "Continue"
 
 [node name="ShopLayer" type="Control" parent="." unique_id=236944122]
 visible = false
@@ -586,3 +458,13 @@ text = "Back"
 [node name="LeaveButton" type="Button" parent="SageAltarLayer/Panel/VBox/Actions"]
 layout_mode = 2
 text = "Leave"
+
+[node name="RewardLayer" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("12_reward")

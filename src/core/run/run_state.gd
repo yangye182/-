@@ -16,6 +16,8 @@ var gold: int = 0
 var floor_index: int = 0
 var deck_ids: Array[String] = []
 var relic_ids: Array[String] = []
+## 进化映射："strike@2" → "heavy_strike"（第2张打击进化成了重击）
+var evolution_map: Dictionary = {}
 var character_id: String = "void_knight"
 var tower_spirit_id: String = "ash_raven"
 
@@ -36,6 +38,7 @@ func start_new_run(selected_character_id: String = "") -> void:
 	gold = int(cfg.get("starting_gold", 50))
 	floor_index = 0
 	deck_ids = _starting_deck_from_cfg(cfg)
+	evolution_map.clear()
 	relic_ids = CharacterRoster.get_starting_relics(cfg)
 	tower_spirit_id = str(cfg.get("tower_spirit_id", "ash_raven"))
 	current_node_id = 0
@@ -55,8 +58,17 @@ func has_relic(id: String) -> bool:
 
 func build_deck_instances() -> Array[CardInstance]:
 	var result: Array[CardInstance] = []
+	var counter: Dictionary = {}
 	for cid in deck_ids:
-		result.append(CardInstance.new(cid, GameDB))
+		counter[cid] = counter.get(cid, 0) + 1
+		var key := "%s@%d" % [cid, counter[cid]]
+		var inst := CardInstance.new(cid, GameDB)
+		if evolution_map.has(key):
+			inst.evolved_to_id = evolution_map[key]
+			var ed := GameDB.get_card(inst.evolved_to_id)
+			if ed:
+				inst.data = ed
+		result.append(inst)
 	return result
 
 
@@ -97,6 +109,20 @@ func evolve_card_type(from_id: String, to_id: String) -> int:
 			deck_ids[i] = to_id
 			replaced += 1
 	return replaced
+
+
+## 进化牌组中指定索引的卡牌，返回是否成功
+func evolve_card_at(deck_index: int, evolved_id: String) -> bool:
+	if deck_index < 0 or deck_index >= deck_ids.size():
+		return false
+	var cid := deck_ids[deck_index]
+	var counter := 0
+	for i in range(deck_index + 1):
+		if deck_ids[i] == cid:
+			counter += 1
+	var key := "%s@%d" % [cid, counter]
+	evolution_map[key] = evolved_id
+	return true
 
 
 func heal_percent(p: float) -> void:

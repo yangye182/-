@@ -57,3 +57,9 @@ func add_blue(amount: int) -> void:
 func drain_blue(amount: int) -> void:
 	current_blue = maxi(current_blue - amount, 0)
 	energy_changed.emit()
+
+
+## 本回合内获得额外红能量（可超出 max_red）
+func add_red(amount: int) -> void:
+	current_red += amount
+	energy_changed.emit()

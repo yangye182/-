@@ -1,20 +1,20 @@
-## 爬塔路线图：按层布局节点 + 连线（自下而上，内容居中）
+## 爬塔路线图：10 层网格布局（杀戮尖塔风格），自下而上
 class_name MapRouteView
 extends Control
 
 signal node_pressed(node_id: int)
 
-const NODE_W := 108.0
-const NODE_H := 52.0
-const FLOOR_GAP := 110.0
-const COL_GAP := 24.0
-const MARGIN_X := 56.0
-const MARGIN_Y := 40.0
-const FLOOR_LABEL_W := 44.0
+const NODE_W := 100.0
+const NODE_H := 48.0
+const FLOOR_GAP := 130.0
+const COL_GAP := 20.0
+const MAP_COLS := 5
+const MARGIN_X := 24.0
+const MARGIN_Y := 20.0
+const FLOOR_LABEL_W := 48.0
 
 var _nodes: Array = []
-var _positions: Dictionary = {}
-var _content_size: Vector2 = Vector2(700, 500)
+var _positions: Dictionary = {}  # node_id -> Vector2
 
 
 func build(nodes: Array) -> void:
@@ -26,8 +26,6 @@ func build(nodes: Array) -> void:
 		return
 	_compute_layout()
 	_create_node_buttons()
-	custom_minimum_size = _content_size
-	size = _content_size
 	queue_redraw()
 
 
@@ -40,30 +38,27 @@ func _compute_layout() -> void:
 		if not by_floor.has(nd.layer_index):
 			by_floor[nd.layer_index] = []
 		by_floor[nd.layer_index].append(nd)
+
 	var floors: Array[int] = []
 	for key in by_floor.keys():
 		floors.append(int(key))
 	floors.sort()
-	var content_w: float = 0.0
-	for f in floors:
-		var row_nodes: Array = by_floor[f]
-		var count: int = row_nodes.size()
-		var row_w: float = float(count) * NODE_W + float(maxi(0, count - 1)) * COL_GAP
-		content_w = maxf(content_w, row_w)
-	content_w += MARGIN_X * 2.0 + FLOOR_LABEL_W
-	var total_h: float = MARGIN_Y * 2.0 + float(max_floor + 1) * FLOOR_GAP
-	_content_size = Vector2(content_w, total_h)
+
+	# 网格总宽 = 固定列数
+	var grid_w := float(MAP_COLS) * NODE_W + float(MAP_COLS - 1) * COL_GAP
+	var total_w := FLOOR_LABEL_W + MARGIN_X + grid_w + MARGIN_X
+	var total_h := MARGIN_Y * 2.0 + float(max_floor) * FLOOR_GAP
+
+	custom_minimum_size = Vector2(total_w, total_h)
+
+	var grid_left := FLOOR_LABEL_W + MARGIN_X
+	# Y 从底部向上
 	for f in floors:
 		var row: Array = by_floor[f]
-		row.sort_custom(func(a, b): return (a as MapNodeData).id < (b as MapNodeData).id)
-		var count: int = row.size()
-		var row_w: float = float(count) * NODE_W + float(maxi(0, count - 1)) * COL_GAP
-		var start_x: float = FLOOR_LABEL_W + MARGIN_X + (content_w - FLOOR_LABEL_W - MARGIN_X * 2.0 - row_w) * 0.5
-		var floor_i: int = int(f)
-		var y: float = total_h - MARGIN_Y - float(floor_i) * FLOOR_GAP - NODE_H * 0.5
-		for i in range(count):
-			var nd: MapNodeData = row[i] as MapNodeData
-			var cx: float = start_x + float(i) * (NODE_W + COL_GAP) + NODE_W * 0.5
+		var y := total_h - MARGIN_Y - float(f) * FLOOR_GAP - NODE_H * 0.5
+		for n in row:
+			var nd: MapNodeData = n
+			var cx := grid_left + float(nd.column_index) * (NODE_W + COL_GAP) + NODE_W * 0.5
 			_positions[nd.id] = Vector2(cx, y)
 
 
@@ -78,9 +73,9 @@ func _create_node_buttons() -> void:
 		btn.position = center - Vector2(NODE_W, NODE_H) * 0.5
 		btn.text = _node_label(nd)
 		btn.disabled = not nd.available or nd.visited
-		UiFonts.apply_font_to(btn, 13)
+		UiFonts.apply_font_to(btn, 11)
 		_style_node_button(btn, nd)
-		var nid: int = nd.id
+		var nid := nd.id
 		btn.pressed.connect(func(): node_pressed.emit(nid))
 		add_child(btn)
 
@@ -131,10 +126,13 @@ func _find_node(node_id: int) -> MapNodeData:
 
 
 func _draw() -> void:
-	var draw_size: Vector2 = size
+	var draw_size := custom_minimum_size
 	if draw_size.x < 10.0:
-		draw_size = _content_size
+		draw_size = Vector2(600, 800)
+
 	draw_rect(Rect2(Vector2.ZERO, draw_size), Color(0.07, 0.08, 0.12, 1.0))
+
+	# 连接线
 	for n in _nodes:
 		var nd: MapNodeData = n
 		if not _positions.has(nd.id):
@@ -152,7 +150,9 @@ func _draw() -> void:
 				line_color = Color(1.0, 0.82, 0.2, 1.0)
 			elif nd.visited and child.visited:
 				line_color = Color(0.3, 0.65, 0.45, 0.9)
-			draw_line(from_pos, to_pos, line_color, 4.0, true)
+			draw_line(from_pos, to_pos, line_color, 3.0, true)
+
+	# 层标签（取每层第一个节点位置标注）
 	var by_floor: Dictionary = {}
 	for n in _nodes:
 		var nd: MapNodeData = n
@@ -164,8 +164,8 @@ func _draw() -> void:
 	floors.sort()
 	var font := UiFonts.get_ui_font()
 	for f in floors:
-		var nd: MapNodeData = by_floor[f] as MapNodeData
+		var nd := by_floor[f] as MapNodeData
 		if _positions.has(nd.id):
 			var pos: Vector2 = _positions[nd.id]
-			var label: String = GameLocale.t("F%d" % (f + 1), "第%d层" % (f + 1))
-			draw_string(font, Vector2(10, pos.y + 8), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color(0.65, 0.7, 0.8))
+			var label := GameLocale.t("F%d" % (f + 1), "第%d层" % (f + 1))
+			draw_string(font, Vector2(8, pos.y + 8), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color(0.65, 0.7, 0.8))

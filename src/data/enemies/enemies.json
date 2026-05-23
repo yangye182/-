@@ -3,7 +3,7 @@
     "id": "rust_sentinel",
     "name": "Rust Sentinel",
     "name_zh": "锈蚀哨兵",
-    "hp": 38,
+    "hp": 35,
     "pattern": [
       {"type": "attack", "value": 7, "desc": "Slash 7", "desc_zh": "挥砍 7"},
       {"type": "attack", "value": 9, "desc": "Heavy 9", "desc_zh": "重击 9"},
@@ -11,36 +11,105 @@
     ]
   },
   {
+    "id": "shadow_acolyte",
+    "name": "Shadow Acolyte",
+    "name_zh": "暗影信徒",
+    "hp": 35,
+    "pattern": [
+      {"type": "steal_blue", "value": 2, "desc": "Steal 2 Blue", "desc_zh": "偷取精神力 2"},
+      {"type": "attack", "value": 8, "desc": "Shadow Bolt 8", "desc_zh": "暗影箭 8"}
+    ]
+  },
+  {
+    "id": "void_crawler",
+    "name": "Void Crawler",
+    "name_zh": "虚空爬行者",
+    "hp": 30,
+    "pattern": [
+      {"type": "attack", "value": 6, "desc": "Scratch 6", "desc_zh": "抓挠 6"},
+      {"type": "attack", "value": 8, "desc": "Lunge 8", "desc_zh": "猛扑 8"},
+      {"type": "attack", "value": 10, "desc": "Void Bite 10", "desc_zh": "虚空噬咬 10"}
+    ]
+  },
+  {
+    "id": "crystal_spike",
+    "name": "Crystal Spike",
+    "name_zh": "水晶尖刺",
+    "hp": 28,
+    "pattern": [
+      {"type": "block", "value": 8, "desc": "Crystal Shield 8", "desc_zh": "水晶护盾 8"},
+      {"type": "buff_retaliate", "value": 3, "desc": "Barbed +3", "desc_zh": "倒刺 +3"},
+      {"type": "attack", "value": 7, "desc": "Shard Throw 7", "desc_zh": "碎片投掷 7"}
+    ]
+  },
+  {
     "id": "rust_sentinel_elite",
     "name": "Rust Sentinel (Elite)",
     "name_zh": "锈蚀哨兵·精英",
-    "hp": 58,
+    "hp": 55,
     "pattern": [
       {"type": "block", "value": 10, "desc": "Guard 10", "desc_zh": "防御 10"},
       {"type": "attack", "value": 12, "desc": "Smash 12", "desc_zh": "猛击 12"},
       {"type": "attack", "value": 6, "desc": "Quick 6", "desc_zh": "连击 6"},
       {"type": "debuff_rust", "value": 0, "desc": "Rust", "desc_zh": "锈蚀"}
+    ],
+    "pattern_low_hp": [
+      {"type": "attack", "value": 14, "desc": "Fury 14", "desc_zh": "狂怒 14"},
+      {"type": "block", "value": 8, "desc": "Guard 8", "desc_zh": "防御 8"},
+      {"type": "attack", "value": 10, "desc": "Smash 10", "desc_zh": "猛击 10"},
+      {"type": "debuff_rust", "value": 0, "desc": "Rust", "desc_zh": "锈蚀"}
     ]
   },
   {
-    "id": "stone_golem",
-    "name": "Stone Golem",
-    "name_zh": "遗迹石魔",
-    "hp": 52,
+    "id": "shadow_priest",
+    "name": "Shadow Priest",
+    "name_zh": "暗影祭司",
+    "hp": 45,
     "pattern": [
-      {"type": "block", "value": 8, "desc": "Harden 8", "desc_zh": "石化 8"},
-      {"type": "attack", "value": 5, "desc": "Rubble 5", "desc_zh": "碎石 5"},
-      {"type": "attack", "value": 18, "desc": "Slam 18", "desc_zh": "蓄力猛击 18"}
+      {"type": "heal_self", "value": 10, "desc": "Dark Heal 10", "desc_zh": "暗影治疗 10"},
+      {"type": "attack", "value": 8, "desc": "Shadow Bolt 8", "desc_zh": "暗影箭 8"},
+      {"type": "apply_vulnerable", "value": 2, "desc": "Hex 2", "desc_zh": "诅咒 2 层"},
+      {"type": "attack", "value": 10, "desc": "Shadow Bolt 10", "desc_zh": "暗影箭 10"}
+    ],
+    "pattern_low_hp": [
+      {"type": "heal_self", "value": 15, "desc": "Dark Heal 15", "desc_zh": "暗影治疗 15"},
+      {"type": "attack", "value": 10, "desc": "Shadow Bolt 10", "desc_zh": "暗影箭 10"},
+      {"type": "apply_vulnerable", "value": 3, "desc": "Hex 3", "desc_zh": "诅咒 3 层"},
+      {"type": "attack", "value": 14, "desc": "Dark Bolt 14", "desc_zh": "暗影箭 14"}
     ]
   },
   {
-    "id": "shadow_acolyte",
-    "name": "Shadow Acolyte",
-    "name_zh": "暗影信徒",
-    "hp": 42,
+    "id": "void_behemoth",
+    "name": "Void Behemoth",
+    "name_zh": "虚空巨兽",
+    "hp": 65,
     "pattern": [
-      {"type": "steal_blue", "value": 2, "desc": "Steal 2 Blue", "desc_zh": "偷取精神力 2"},
-      {"type": "attack", "value": 8, "desc": "Shadow Bolt 8", "desc_zh": "暗影箭 8"}
+      {"type": "attack", "value": 12, "desc": "Claw 12", "desc_zh": "巨爪 12"},
+      {"type": "block", "value": 10, "desc": "Void Hide 10", "desc_zh": "虚空之皮 10"},
+      {"type": "attack", "value": 14, "desc": "Tail Sweep 14", "desc_zh": "扫尾 14"}
+    ],
+    "pattern_low_hp": [
+      {"type": "attack", "value": 16, "desc": "Claw 16", "desc_zh": "巨爪 16"},
+      {"type": "block", "value": 8, "desc": "Void Hide 8", "desc_zh": "虚空之皮 8"},
+      {"type": "attack", "value": 22, "desc": "Enrage 22", "desc_zh": "暴怒 22"}
+    ]
+  },
+  {
+    "id": "crystal_warden",
+    "name": "Crystal Warden",
+    "name_zh": "水晶守卫",
+    "hp": 50,
+    "pattern": [
+      {"type": "block", "value": 12, "desc": "Fortress 12", "desc_zh": "堡垒 12"},
+      {"type": "attack", "value": 8, "desc": "Crystal Lance 8", "desc_zh": "水晶枪 8"},
+      {"type": "buff_retaliate", "value": 4, "desc": "Barbed +4", "desc_zh": "倒刺 +4"},
+      {"type": "attack", "value": 12, "desc": "Crystal Lance 12", "desc_zh": "水晶枪 12"}
+    ],
+    "pattern_low_hp": [
+      {"type": "block", "value": 16, "desc": "Fortress 16", "desc_zh": "堡垒 16"},
+      {"type": "attack", "value": 10, "desc": "Crystal Lance 10", "desc_zh": "水晶枪 10"},
+      {"type": "buff_retaliate", "value": 6, "desc": "Barbed +6", "desc_zh": "倒刺 +6"},
+      {"type": "attack", "value": 16, "desc": "Crystal Lance 16", "desc_zh": "水晶枪 16"}
     ]
   },
   {
@@ -52,6 +121,51 @@
       {"type": "attack", "value": 10, "desc": "Crush 10", "desc_zh": "碾压 10"},
       {"type": "block", "value": 15, "desc": "Iron Wall 15", "desc_zh": "铁壁 15"},
       {"type": "attack", "value": 16, "desc": "Quake 16", "desc_zh": "震地 16"}
+    ],
+    "pattern_low_hp": [
+      {"type": "attack", "value": 14, "desc": "Crush 14", "desc_zh": "碾压 14"},
+      {"type": "block", "value": 10, "desc": "Iron Wall 10", "desc_zh": "铁壁 10"},
+      {"type": "attack", "value": 20, "desc": "Quake 20", "desc_zh": "震地 20"},
+      {"type": "debuff_rust", "value": 0, "desc": "Rust", "desc_zh": "锈蚀"}
+    ]
+  },
+  {
+    "id": "shadow_lord",
+    "name": "Shadow Lord",
+    "name_zh": "暗影领主",
+    "hp": 100,
+    "pattern": [
+      {"type": "steal_blue", "value": 3, "desc": "Energy Drain 3", "desc_zh": "能量汲取 3"},
+      {"type": "summon", "value": 0, "desc": "Summon Acolyte", "desc_zh": "召唤信徒"},
+      {"type": "attack", "value": 12, "desc": "Shadow Blast 12", "desc_zh": "暗影爆裂 12"},
+      {"type": "apply_vulnerable", "value": 2, "desc": "Soul Weaken 2", "desc_zh": "灵魂弱化 2"},
+      {"type": "attack_all", "value": 10, "desc": "Shadow Nova 10", "desc_zh": "暗影新星 10"}
+    ],
+    "pattern_low_hp": [
+      {"type": "steal_blue", "value": 4, "desc": "Energy Drain 4", "desc_zh": "能量汲取 4"},
+      {"type": "summon", "value": 0, "desc": "Summon 2 Acolytes", "desc_zh": "召唤 2 信徒"},
+      {"type": "attack", "value": 16, "desc": "Shadow Blast 16", "desc_zh": "暗影爆裂 16"},
+      {"type": "apply_vulnerable", "value": 3, "desc": "Soul Weaken 3", "desc_zh": "灵魂弱化 3"},
+      {"type": "attack_all", "value": 14, "desc": "Shadow Nova 14", "desc_zh": "暗影新星 14"}
+    ]
+  },
+  {
+    "id": "void_dragon",
+    "name": "Void Dragon",
+    "name_zh": "虚空龙",
+    "hp": 130,
+    "pattern": [
+      {"type": "attack", "value": 10, "desc": "Claw 10", "desc_zh": "龙爪 10"},
+      {"type": "block", "value": 12, "desc": "Void Scales 12", "desc_zh": "虚空鳞甲 12"},
+      {"type": "attack", "value": 14, "desc": "Tail 14", "desc_zh": "龙尾 14"},
+      {"type": "attack_all", "value": 10, "desc": "Void Breath 10", "desc_zh": "虚空吐息 10"}
+    ],
+    "pattern_low_hp": [
+      {"type": "attack", "value": 14, "desc": "Claw 14", "desc_zh": "龙爪 14"},
+      {"type": "block", "value": 10, "desc": "Void Scales 10", "desc_zh": "虚空鳞甲 10"},
+      {"type": "apply_weak", "value": 2, "desc": "Dragon Fear 2", "desc_zh": "龙威 2"},
+      {"type": "attack", "value": 18, "desc": "Tail 18", "desc_zh": "龙尾 18"},
+      {"type": "attack_all", "value": 14, "desc": "Void Breath 14", "desc_zh": "虚空吐息 14"}
     ]
   }
 ]

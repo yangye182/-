@@ -58,6 +58,12 @@ func play_from_hand(index: int) -> CardInstance:
 	return card
 
 
+func move_last_discarded_to_exhaust() -> void:
+	if not discard_pile.is_empty():
+		exhaust_pile.append(discard_pile.pop_back())
+		piles_changed.emit()
+
+
 func add_to_discard(card: CardInstance) -> void:
 	discard_pile.append(card)
 	piles_changed.emit()

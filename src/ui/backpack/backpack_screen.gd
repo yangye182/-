@@ -121,7 +121,7 @@ func _refresh_deck() -> void:
 		count_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		UiFonts.apply_font_to(count_lbl, 14)
 		box.add_child(count_lbl)
-		if GameDB.has_evolution(cid):
+		if data and not data.evolves_to.is_empty():
 			var hint := Label.new()
 			hint.text = GameLocale.t("Can evolve at Sage Altar", "可在贤者祭坛进化")
 			hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
