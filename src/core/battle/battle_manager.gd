@@ -368,7 +368,6 @@ func _execute_enemy_turn() -> void:
 					var minion := Combatant.new()
 					minion.setup_from_enemy_data(minion_data)
 					enemies.append(minion)
-					var minion_idx := enemies.size() - 1
 					enemy_turn_indices.append(0)
 					EnemyAI.plan_intent(minion, minion_data, 0)
 					log_message.emit(GameLocale.t(

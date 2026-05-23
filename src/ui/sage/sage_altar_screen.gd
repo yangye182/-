@@ -166,7 +166,6 @@ func _show_paths() -> void:
 	for branch in data.evolves_to:
 		var branch_data: Dictionary = branch as Dictionary
 		var target_id: String = branch_data.get("id", "")
-		var cost: int = branch_data.get("cost", 50)
 		var desc_en: String = branch_data.get("desc_en", "")
 		var desc_zh: String = branch_data.get("desc_zh", "")
 		var target_data := GameDB.get_card(target_id)

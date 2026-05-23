@@ -2,6 +2,7 @@
 extends Control
 
 const CardWidgetScene := preload("res://src/ui/card/card_widget.gd")
+const PileViewOverlayScene := preload("res://src/ui/battle/pile_view_overlay.gd")
 
 enum TargetMode { IDLE, SELECTING_TARGET }
 
@@ -22,9 +23,10 @@ var _block_icon: ColorRect
 var _energy_label: Label
 var _red_energy_container: HBoxContainer
 var _blue_energy_container: HBoxContainer
-var _draw_count_label: Label
-var _discard_count_label: Label
-var _exhaust_count_label: Label
+var _draw_pile_btn: Button
+var _discard_pile_btn: Button
+var _exhaust_pile_btn: Button
+var _pile_overlay: PileViewOverlay
 
 var _enemy_container: HBoxContainer
 var _enemy_widgets: Array[Panel] = []
@@ -52,6 +54,7 @@ func _connect_signals() -> void:
 	battle_manager.energy_updated.connect(_refresh_energy_and_hand)
 	battle_manager.enemies_updated.connect(_refresh_enemies)
 	battle_manager.deck.hand_changed.connect(_refresh_hand)
+	battle_manager.deck.piles_changed.connect(_on_piles_changed)
 	battle_manager.log_message.connect(func(msg): _log_label.text = msg)
 	battle_manager.battle_ended.connect(_on_battle_ended)
 	battle_manager.player.hp_changed.connect(_update_player)
@@ -91,6 +94,7 @@ func _build_ui() -> void:
 	_build_middle_area(main_vbox)
 	_build_bottom_bar(main_vbox)
 	_build_victory_overlay()
+	_build_pile_overlay()
 
 
 func _build_top_bar(parent: VBoxContainer) -> void:
@@ -168,17 +172,26 @@ func _build_top_bar(parent: VBoxContainer) -> void:
 	deck_vbox.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	top_bar.add_child(deck_vbox)
 
-	_draw_count_label = Label.new()
-	UiFonts.apply_font_to(_draw_count_label, 13)
-	deck_vbox.add_child(_draw_count_label)
+	_draw_pile_btn = _make_pile_button(
+		GameLocale.t("Draw: 0", "抽牌: 0"),
+		Color(0.35, 0.55, 0.85)
+	)
+	_draw_pile_btn.pressed.connect(func(): _open_pile_view(PileViewOverlay.PileTab.DRAW))
+	deck_vbox.add_child(_draw_pile_btn)
 
-	_discard_count_label = Label.new()
-	UiFonts.apply_font_to(_discard_count_label, 13)
-	deck_vbox.add_child(_discard_count_label)
+	_discard_pile_btn = _make_pile_button(
+		GameLocale.t("Discard: 0", "弃牌: 0"),
+		Color(0.55, 0.45, 0.35)
+	)
+	_discard_pile_btn.pressed.connect(func(): _open_pile_view(PileViewOverlay.PileTab.DISCARD))
+	deck_vbox.add_child(_discard_pile_btn)
 
-	_exhaust_count_label = Label.new()
-	UiFonts.apply_font_to(_exhaust_count_label, 13)
-	deck_vbox.add_child(_exhaust_count_label)
+	_exhaust_pile_btn = _make_pile_button(
+		GameLocale.t("Exhaust: 0", "移除: 0"),
+		Color(0.5, 0.35, 0.55)
+	)
+	_exhaust_pile_btn.pressed.connect(func(): _open_pile_view(PileViewOverlay.PileTab.EXHAUST))
+	deck_vbox.add_child(_exhaust_pile_btn)
 
 
 func _build_middle_area(parent: VBoxContainer) -> void:
@@ -242,6 +255,33 @@ func _build_bottom_bar(parent: VBoxContainer) -> void:
 	btn_vbox.add_child(_end_turn_btn)
 
 
+func _make_pile_button(text: String, accent: Color) -> Button:
+	var btn := Button.new()
+	btn.text = text
+	btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	btn.flat = true
+	btn.custom_minimum_size = Vector2(120, 22)
+	UiFonts.apply_font_to(btn, 13)
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(accent.r * 0.25, accent.g * 0.25, accent.b * 0.25, 0.9)
+	sb.set_corner_radius_all(4)
+	sb.content_margin_left = 6
+	sb.content_margin_right = 6
+	sb.content_margin_top = 2
+	sb.content_margin_bottom = 2
+	btn.add_theme_stylebox_override("normal", sb)
+	btn.add_theme_stylebox_override("hover", sb.duplicate())
+	btn.get_theme_stylebox("hover").bg_color = Color(accent.r * 0.4, accent.g * 0.4, accent.b * 0.4, 0.95)
+	btn.add_theme_color_override("font_color", Color(0.9, 0.92, 0.96))
+	btn.tooltip_text = GameLocale.t("Click to view cards", "点击查看牌面")
+	return btn
+
+
+func _build_pile_overlay() -> void:
+	_pile_overlay = PileViewOverlayScene.new()
+	add_child(_pile_overlay)
+
+
 func _build_victory_overlay() -> void:
 	_victory_dim = ColorRect.new()
 	_victory_dim.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -284,6 +324,8 @@ func start_battle(enemy_ids: Array[String], rift: String, hp_scale: float = 1.0)
 	_cancel_target_mode()
 	_victory_dim.visible = false
 	_victory_panel.visible = false
+	if _pile_overlay != null:
+		_pile_overlay.close()
 	battle_manager.start_battle(enemy_ids, RunState.build_deck_instances(), rift, hp_scale)
 
 
@@ -363,18 +405,29 @@ func _rebuild_energy_display() -> void:
 
 func _update_deck_info() -> void:
 	var d := battle_manager.deck
-	_draw_count_label.text = GameLocale.t(
+	_draw_pile_btn.text = GameLocale.t(
 		"Draw: %d" % d.draw_pile.size(),
 		"抽牌: %d" % d.draw_pile.size()
 	)
-	_discard_count_label.text = GameLocale.t(
+	_discard_pile_btn.text = GameLocale.t(
 		"Discard: %d" % d.discard_pile.size(),
 		"弃牌: %d" % d.discard_pile.size()
 	)
-	_exhaust_count_label.text = GameLocale.t(
+	_exhaust_pile_btn.text = GameLocale.t(
 		"Exhaust: %d" % d.exhaust_pile.size(),
 		"移除: %d" % d.exhaust_pile.size()
 	)
+
+
+func _on_piles_changed() -> void:
+	_update_deck_info()
+	if _pile_overlay != null and _pile_overlay.visible:
+		_pile_overlay.refresh()
+
+
+func _open_pile_view(tab: int) -> void:
+	_cancel_target_mode()
+	_pile_overlay.open(battle_manager.deck, tab)
 
 
 func _refresh_enemies() -> void:

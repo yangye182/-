@@ -1,4 +1,4 @@
-## 爬塔路线图：10 层网格布局（杀戮尖塔风格），自下而上
+## 爬塔路线图：16 层网格布局（杀戮尖塔风格），自下而上
 class_name MapRouteView
 extends Control
 
@@ -6,7 +6,7 @@ signal node_pressed(node_id: int)
 
 const NODE_W := 100.0
 const NODE_H := 48.0
-const FLOOR_GAP := 130.0
+const FLOOR_GAP := 78.0
 const COL_GAP := 20.0
 const MAP_COLS := 5
 const MARGIN_X := 24.0
@@ -15,6 +15,7 @@ const FLOOR_LABEL_W := 48.0
 
 var _nodes: Array = []
 var _positions: Dictionary = {}  # node_id -> Vector2
+var _edge_draw_list: Array = []  # MapEdgeRouter.EdgeDrawData
 
 
 func build(nodes: Array) -> void:
@@ -25,6 +26,7 @@ func build(nodes: Array) -> void:
 	if _nodes.is_empty():
 		return
 	_compute_layout()
+	_build_edge_draw_list()
 	_create_node_buttons()
 	queue_redraw()
 
@@ -125,6 +127,28 @@ func _find_node(node_id: int) -> MapNodeData:
 	return null
 
 
+func _build_edge_draw_list() -> void:
+	_edge_draw_list = MapEdgeRouter.build_edges(_nodes, _positions)
+	for e in _edge_draw_list:
+		var edge: MapEdgeRouter.EdgeDrawData = e as MapEdgeRouter.EdgeDrawData
+		var parent_nd := _find_node(edge.from_id)
+		var child_nd := _find_node(edge.to_id)
+		if parent_nd == null or child_nd == null:
+			continue
+		edge.color = Color(0.38, 0.42, 0.55, 0.75)
+		edge.width = 2.5
+		edge.draw_priority = 0
+		if parent_nd.visited and child_nd.visited:
+			edge.color = Color(0.28, 0.62, 0.48, 0.88)
+			edge.width = 3.0
+			edge.draw_priority = 1
+		if parent_nd.visited and child_nd.available:
+			edge.color = Color(1.0, 0.82, 0.2, 1.0)
+			edge.width = 4.0
+			edge.draw_priority = 2
+	MapEdgeRouter.sort_for_draw(_edge_draw_list)
+
+
 func _draw() -> void:
 	var draw_size := custom_minimum_size
 	if draw_size.x < 10.0:
@@ -132,25 +156,12 @@ func _draw() -> void:
 
 	draw_rect(Rect2(Vector2.ZERO, draw_size), Color(0.07, 0.08, 0.12, 1.0))
 
-	# 连接线
-	for n in _nodes:
-		var nd: MapNodeData = n
-		if not _positions.has(nd.id):
-			continue
-		var from_pos: Vector2 = _positions[nd.id]
-		for cid in nd.connections:
-			if not _positions.has(cid):
-				continue
-			var child := _find_node(cid)
-			if child == null:
-				continue
-			var to_pos: Vector2 = _positions[cid]
-			var line_color := Color(0.4, 0.45, 0.58, 0.85)
-			if nd.visited and child.available:
-				line_color = Color(1.0, 0.82, 0.2, 1.0)
-			elif nd.visited and child.visited:
-				line_color = Color(0.3, 0.65, 0.45, 0.9)
-			draw_line(from_pos, to_pos, line_color, 3.0, true)
+	# 连接线（车道 + 贝塞尔，按优先级绘制避免遮挡）
+	for e in _edge_draw_list:
+		var edge: MapEdgeRouter.EdgeDrawData = e as MapEdgeRouter.EdgeDrawData
+		var pts := MapEdgeRouter.sample_polyline(edge)
+		if pts.size() >= 2:
+			draw_polyline(pts, edge.color, edge.width, true)
 
 	# 层标签（取每层第一个节点位置标注）
 	var by_floor: Dictionary = {}

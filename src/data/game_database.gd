@@ -60,5 +60,3 @@ func get_character(id: String) -> Dictionary:
 
 func get_relic(id: String) -> Dictionary:
 	return relics.get(id, {})
-
-

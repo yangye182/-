@@ -19,9 +19,10 @@ const BOSS_POOL := ["rust_colossus", "shadow_lord", "void_dragon"]
 
 
 static func _get_floor_config(layer_index: int) -> Dictionary:
-	if layer_index <= 3:
+	# 16 层地图：前期 1~5、中期 6~11、后期 12~14
+	if layer_index <= 5:
 		return FLOOR_POOLS[1]
-	elif layer_index <= 6:
+	elif layer_index <= 11:
 		return FLOOR_POOLS[2]
 	else:
 		return FLOOR_POOLS[3]
