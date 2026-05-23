@@ -1,0 +1,27 @@
+[
+  {
+    "base_id": "fireball",
+    "gold_cost": 50,
+    "paths": [
+      { "to_id": "fireball_meteor" },
+      { "to_id": "fireball_barrage" },
+      { "to_id": "fireball_eternal" }
+    ]
+  },
+  {
+    "base_id": "ember_slash",
+    "gold_cost": 60,
+    "paths": [
+      { "to_id": "ember_cleave" },
+      { "to_id": "ember_heavy" }
+    ]
+  },
+  {
+    "base_id": "strike",
+    "gold_cost": 40,
+    "paths": [
+      { "to_id": "strike_plus" },
+      { "to_id": "strike_pierce" }
+    ]
+  }
+]

@@ -28,6 +28,7 @@ var character_id: String = "void_knight"
 
 
 func start_battle(enemy_ids: Array[String], run_deck: Array[CardInstance]) -> void:
+	character_id = RunState.character_id
 	_setup_player()
 	_setup_enemies(enemy_ids)
 	deck.setup_deck(run_deck)
@@ -119,7 +120,7 @@ func play_card(hand_index: int, target_enemy_index: int = 0) -> bool:
 	return true
 
 
-func _resolve_card(card: CardInstance, data: CardData, target_idx: int) -> void:
+func _resolve_card(_card: CardInstance, data: CardData, target_idx: int) -> void:
 	log_message.emit(GameLocale.t("Played [%s]" % data.get_display_name(), "打出【%s】" % data.get_display_name()))
 	# 伤害
 	if data.damage > 0:

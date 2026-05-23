@@ -4,24 +4,20 @@ extends RefCounted
 
 static func plan_intent(enemy: Combatant, pattern: Array, turn_index: int) -> void:
 	if pattern.is_empty():
-		enemy.intent_type = "attack"
-		enemy.intent_value = 6
-		enemy.intent_desc = GameLocale.t("Attack 6", "攻击 6")
-		enemy.intent_changed.emit()
+		enemy.set_intent("attack", 6, GameLocale.t("Attack 6", "攻击 6"))
 		return
 	var step = pattern[turn_index % pattern.size()]
 	if step is Dictionary:
-		enemy.intent_type = step.get("type", "attack")
-		enemy.intent_value = int(step.get("value", 0))
-		enemy.intent_desc = GameLocale.t(
-			str(step.get("desc", enemy.intent_type)),
-			str(step.get("desc_zh", step.get("desc", enemy.intent_type)))
+		var itype: String = step.get("type", "attack")
+		var ivalue: int = int(step.get("value", 0))
+		var idesc: String = GameLocale.t(
+			str(step.get("desc", itype)),
+			str(step.get("desc_zh", step.get("desc", itype)))
 		)
+		enemy.set_intent(itype, ivalue, idesc)
 	else:
-		enemy.intent_type = "attack"
-		enemy.intent_value = int(step)
-		enemy.intent_desc = GameLocale.t("Attack %d" % enemy.intent_value, "攻击 %d" % enemy.intent_value)
-	enemy.intent_changed.emit()
+		var dmg: int = int(step)
+		enemy.set_intent("attack", dmg, GameLocale.t("Attack %d" % dmg, "攻击 %d" % dmg))
 
 
 static func execute_intent(enemy: Combatant, target: Combatant) -> void:

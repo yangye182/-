@@ -19,6 +19,14 @@ var intent_type: String = "attack"
 var intent_value: int = 0
 var intent_desc: String = ""
 
+
+func set_intent(type: String, value: int, desc: String) -> void:
+	intent_type = type
+	intent_value = value
+	intent_desc = desc
+	intent_changed.emit()
+
+
 ## 状态：vulnerable, weak, rust 等 -> 层数
 var statuses: Dictionary = {}
 

@@ -47,8 +47,8 @@ func _refresh() -> void:
 		if data == null:
 			continue
 		var price: int = int(offer.get("price", 50))
-		var wrap := VBoxContainer.new()
-		wrap.add_theme_constant_override("separation", 8)
+		var offer_box := VBoxContainer.new()
+		offer_box.add_theme_constant_override("separation", 8)
 		var card_ui = CardWidgetScene.new()
 		var can_buy := RunState.gold >= price
 		card_ui.setup(data, not can_buy, price)
@@ -62,9 +62,9 @@ func _refresh() -> void:
 			if can_buy:
 				_buy_card(offer_ref)
 		)
-		wrap.add_child(card_ui)
-		wrap.add_child(buy_btn)
-		cards_row.add_child(wrap)
+		offer_box.add_child(card_ui)
+		offer_box.add_child(buy_btn)
+		cards_row.add_child(offer_box)
 	msg_label.text = GameLocale.t("Click a card or Buy button", "点击卡牌或购买按钮")
 
 

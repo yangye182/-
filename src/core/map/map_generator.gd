@@ -14,7 +14,7 @@ static func generate() -> Array:
 	# 第 0 层：仅起点
 	var start := MapNodeData.new()
 	start.id = node_id
-	start.floor = 0
+	start.layer_index = 0
 	start.type = MapNodeData.NodeType.START
 	start.available = true
 	all_nodes.append(start)
@@ -27,7 +27,7 @@ static func generate() -> Array:
 		for col in NODES_PER_MIDDLE_LAYER:
 			var n := MapNodeData.new()
 			n.id = node_id
-			n.floor = layer
+			n.layer_index = layer
 			n.type = _pick_middle_type(layer, col)
 			if n.type == MapNodeData.NodeType.VOID_RIFT:
 				n.rift_rule = ["reverse", "silent", "mirror", "deplete", "chaos"].pick_random()
@@ -69,7 +69,7 @@ static func generate() -> Array:
 	# 最后一层：仅 BOSS
 	var boss := MapNodeData.new()
 	boss.id = node_id
-	boss.floor = LAYERS - 1
+	boss.layer_index = LAYERS - 1
 	boss.type = MapNodeData.NodeType.BOSS
 	all_nodes.append(boss)
 	var boss_id: int = node_id
@@ -83,7 +83,7 @@ static func generate() -> Array:
 	return all_nodes
 
 
-static func _pick_middle_type(layer: int, _col: int) -> MapNodeData.NodeType:
+static func _pick_middle_type(_layer: int, _col: int) -> MapNodeData.NodeType:
 	var roll := randf()
 	if roll < 0.42:
 		return MapNodeData.NodeType.COMBAT

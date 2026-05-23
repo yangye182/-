@@ -9,7 +9,7 @@ enum NodeType {
 
 var id: int = 0
 var type: NodeType = NodeType.COMBAT
-var floor: int = 0
+var layer_index: int = 0
 var connections: Array[int] = []
 var visited: bool = false
 var available: bool = false

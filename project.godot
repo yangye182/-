@@ -26,6 +26,7 @@ Locale="*res://src/core/locale.gd"
 UiFonts="*res://src/core/ui_fonts.gd"
 GameDB="*res://src/data/game_database.gd"
 RunState="*res://src/core/run/run_state.gd"
+CharacterProgress="*res://src/core/character/character_progress.gd"
 
 [display]
 

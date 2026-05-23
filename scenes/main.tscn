@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://pivvgyrvckvb"]
+[gd_scene load_steps=12 format=3 uid="uid://pivvgyrvckvb"]
 
 [ext_resource type="Script" uid="uid://d0hr5r7x3o2lk" path="res://src/game_flow.gd" id="1_flow"]
 [ext_resource type="Script" uid="uid://oxkdcbs22ai5" path="res://src/ui/menu/main_menu.gd" id="2_menu"]
@@ -8,6 +8,9 @@
 [ext_resource type="Script" uid="uid://debftjr45qxf7" path="res://src/ui/map/map_route_view.gd" id="6_route"]
 [ext_resource type="Script" uid="uid://cvdfgsu1glc4h" path="res://src/ui/shop/shop_screen.gd" id="7_shop"]
 [ext_resource type="Script" uid="uid://bdh7c61uft5ej" path="res://src/ui/event/event_screen.gd" id="8_event"]
+[ext_resource type="Script" path="res://src/ui/backpack/backpack_screen.gd" id="9_backpack"]
+[ext_resource type="Script" path="res://src/ui/sage/sage_altar_screen.gd" id="10_sage"]
+[ext_resource type="Script" path="res://src/ui/character/character_select_screen.gd" id="11_char_select"]
 
 [node name="Main" type="Control" unique_id=1099211924]
 layout_mode = 3
@@ -60,6 +63,109 @@ text = "Start Run"
 layout_mode = 2
 text = "Quit"
 
+[node name="CharacterSelectLayer" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("11_char_select")
+
+[node name="Panel" type="PanelContainer" parent="CharacterSelectLayer"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -520.0
+offset_top = -280.0
+offset_right = 520.0
+offset_bottom = 280.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="CharacterSelectLayer/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="CharacterSelectLayer/Panel/VBox"]
+layout_mode = 2
+text = "Choose Character"
+horizontal_alignment = 1
+
+[node name="Body" type="HBoxContainer" parent="CharacterSelectLayer/Panel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="RosterScroll" type="ScrollContainer" parent="CharacterSelectLayer/Panel/VBox/Body"]
+custom_minimum_size = Vector2(520, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 2
+vertical_scroll_mode = 0
+
+[node name="RosterRow" type="HBoxContainer" parent="CharacterSelectLayer/Panel/VBox/Body/RosterScroll"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="DetailPanel" type="PanelContainer" parent="CharacterSelectLayer/Panel/VBox/Body"]
+custom_minimum_size = Vector2(360, 0)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="DetailVBox" type="VBoxContainer" parent="CharacterSelectLayer/Panel/VBox/Body/DetailPanel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="NameLabel" type="Label" parent="CharacterSelectLayer/Panel/VBox/Body/DetailPanel/DetailVBox"]
+layout_mode = 2
+text = "Name"
+
+[node name="DescLabel" type="Label" parent="CharacterSelectLayer/Panel/VBox/Body/DetailPanel/DetailVBox"]
+layout_mode = 2
+text = "Description"
+autowrap_mode = 3
+
+[node name="StatsLabel" type="Label" parent="CharacterSelectLayer/Panel/VBox/Body/DetailPanel/DetailVBox"]
+layout_mode = 2
+text = "Stats"
+autowrap_mode = 3
+
+[node name="DeckLabel" type="Label" parent="CharacterSelectLayer/Panel/VBox/Body/DetailPanel/DetailVBox"]
+layout_mode = 2
+text = "Deck"
+autowrap_mode = 3
+
+[node name="RelicLabel" type="Label" parent="CharacterSelectLayer/Panel/VBox/Body/DetailPanel/DetailVBox"]
+layout_mode = 2
+text = "Relic"
+autowrap_mode = 3
+
+[node name="LockLabel" type="Label" parent="CharacterSelectLayer/Panel/VBox/Body/DetailPanel/DetailVBox"]
+layout_mode = 2
+text = ""
+autowrap_mode = 3
+modulate = Color(1, 0.5, 0.5, 1)
+
+[node name="Actions" type="HBoxContainer" parent="CharacterSelectLayer/Panel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 32
+alignment = 1
+
+[node name="BackButton" type="Button" parent="CharacterSelectLayer/Panel/VBox/Actions"]
+layout_mode = 2
+text = "Back"
+
+[node name="ConfirmButton" type="Button" parent="CharacterSelectLayer/Panel/VBox/Actions"]
+layout_mode = 2
+text = "Start"
+
 [node name="MapLayer" type="Control" parent="." unique_id=812600601]
 visible = false
 layout_mode = 1
@@ -84,6 +190,10 @@ theme_override_constants/separation = 24
 [node name="StatsLabel" type="Label" parent="MapLayer/MapHeader/HeaderBox" unique_id=658722164]
 layout_mode = 2
 text = "HP / Gold"
+
+[node name="BackpackButton" type="Button" parent="MapLayer/MapHeader/HeaderBox"]
+layout_mode = 2
+text = "Backpack"
 
 [node name="InfoLabel" type="Label" parent="MapLayer/MapHeader/HeaderBox" unique_id=743976380]
 layout_mode = 2
@@ -378,5 +488,101 @@ layout_mode = 2
 horizontal_alignment = 1
 
 [node name="LeaveButton" type="Button" parent="EventLayer/Panel/VBox" unique_id=1972837473]
+layout_mode = 2
+text = "Leave"
+
+[node name="BackpackLayer" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("9_backpack")
+
+[node name="SageAltarLayer" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("10_sage")
+
+[node name="Panel" type="PanelContainer" parent="SageAltarLayer"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -480.0
+offset_top = -300.0
+offset_right = 480.0
+offset_bottom = 300.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="SageAltarLayer/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="SageAltarLayer/Panel/VBox"]
+layout_mode = 2
+text = "Sage Altar"
+horizontal_alignment = 1
+
+[node name="Header" type="HBoxContainer" parent="SageAltarLayer/Panel/VBox"]
+layout_mode = 2
+
+[node name="GoldLabel" type="Label" parent="SageAltarLayer/Panel/VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Gold: 0"
+
+[node name="HintLabel" type="Label" parent="SageAltarLayer/Panel/VBox"]
+layout_mode = 2
+text = "Hint"
+autowrap_mode = 3
+horizontal_alignment = 1
+
+[node name="PickScroll" type="ScrollContainer" parent="SageAltarLayer/Panel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+custom_minimum_size = Vector2(0, 200)
+horizontal_scroll_mode = 2
+vertical_scroll_mode = 0
+
+[node name="PickRow" type="HBoxContainer" parent="SageAltarLayer/Panel/VBox/PickScroll"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="PathsRow" type="HBoxContainer" parent="SageAltarLayer/Panel/VBox"]
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="MsgLabel" type="Label" parent="SageAltarLayer/Panel/VBox"]
+layout_mode = 2
+text = ""
+horizontal_alignment = 1
+
+[node name="Actions" type="HBoxContainer" parent="SageAltarLayer/Panel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="BackButton" type="Button" parent="SageAltarLayer/Panel/VBox/Actions"]
+visible = false
+layout_mode = 2
+text = "Back"
+
+[node name="LeaveButton" type="Button" parent="SageAltarLayer/Panel/VBox/Actions"]
 layout_mode = 2
 text = "Leave"

@@ -5,10 +5,13 @@ var cards: Dictionary = {}
 var enemies: Dictionary = {}
 var characters: Dictionary = {}
 var relics: Dictionary = {}
+## base_id -> { gold_cost, paths: [{ to_id }] }
+var evolutions: Dictionary = {}
 
 
 func _ready() -> void:
 	_load_json_dir("res://src/data/cards/cards.json", cards, "id", CardData.from_dict)
+	_load_evolutions("res://src/data/cards/evolutions.json")
 	_load_json_enemies("res://src/data/enemies/enemies.json")
 	_load_json_dir("res://src/data/characters/characters.json", characters, "id")
 	_load_json_dir("res://src/data/relics/relics.json", relics, "id")
@@ -60,3 +63,38 @@ func get_character(id: String) -> Dictionary:
 
 func get_relic(id: String) -> Dictionary:
 	return relics.get(id, {})
+
+
+func _load_evolutions(path: String) -> void:
+	if not FileAccess.file_exists(path):
+		return
+	var parsed = JSON.parse_string(FileAccess.get_file_as_string(path))
+	if parsed == null or not parsed is Array:
+		return
+	for item in parsed:
+		if not item is Dictionary:
+			continue
+		var base_id: String = item.get("base_id", "")
+		if base_id != "":
+			evolutions[base_id] = item
+
+
+func has_evolution(base_id: String) -> bool:
+	return evolutions.has(base_id)
+
+
+func get_evolution_cost(base_id: String) -> int:
+	var info: Dictionary = evolutions.get(base_id, {})
+	return int(info.get("gold_cost", 50))
+
+
+func get_evolution_paths(base_id: String) -> Array:
+	var info: Dictionary = evolutions.get(base_id, {})
+	var paths: Array = info.get("paths", [])
+	var result: Array = []
+	for p in paths:
+		if p is Dictionary:
+			var to_id: String = p.get("to_id", "")
+			if to_id != "" and get_card(to_id) != null:
+				result.append(p)
+	return result

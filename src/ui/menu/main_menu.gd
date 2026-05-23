@@ -21,4 +21,4 @@ func _apply_locale() -> void:
 
 
 func _on_start() -> void:
-	get_parent().start_new_run()
+	get_parent().open_character_select()

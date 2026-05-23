@@ -3,33 +3,67 @@
     "id": "void_knight",
     "name": "Void Knight",
     "name_zh": "虚空骑士",
+    "sort_order": 0,
+    "unlocked_by_default": true,
     "max_hp": 70,
     "red_per_turn": 3,
     "blue_max": 4,
     "blue_gain": 1,
-    "description": "Balanced Red/Blue build.",
-    "description_zh": "均衡型，红蓝兼修。"
+    "starting_gold": 50,
+    "tower_spirit_id": "ash_raven",
+    "starting_relics": ["knight_oath"],
+    "starting_deck": [
+      "strike", "strike", "strike", "strike", "strike",
+      "defend", "defend", "defend", "defend",
+      "ember_slash"
+    ],
+    "description": "Balanced Red/Blue. Starter relic: Knight's Oath.",
+    "description_zh": "均衡型红蓝构筑。初始遗物：骑士誓言。"
   },
   {
     "id": "soul_pyromancer",
     "name": "Soul Pyromancer",
     "name_zh": "魂火术士",
+    "sort_order": 1,
+    "unlocked_by_default": false,
+    "unlock_hint_en": "Defeat the final BOSS to unlock.",
+    "unlock_hint_zh": "击败最终 BOSS 后解锁。",
     "max_hp": 55,
     "red_per_turn": 2,
     "blue_max": 8,
     "blue_gain": 2,
-    "description": "Blue-focused (locked).",
-    "description_zh": "精神力特化（需解锁）。"
+    "starting_gold": 50,
+    "tower_spirit_id": "crystal_butterfly",
+    "starting_relics": ["worn_charm"],
+    "starting_deck": [
+      "strike", "strike", "strike",
+      "defend", "defend", "defend",
+      "fireball", "fireball", "meditate"
+    ],
+    "description": "High Blue cap. Blue spells and shields.",
+    "description_zh": "精神力上限高，法术与护盾向构筑。"
   },
   {
     "id": "blade_assassin",
     "name": "Blade Assassin",
     "name_zh": "碎刃刺客",
+    "sort_order": 2,
+    "unlocked_by_default": false,
+    "unlock_hint_en": "Clear a run with Void Knight to unlock.",
+    "unlock_hint_zh": "使用虚空骑士通关一次后解锁。",
     "max_hp": 60,
     "red_per_turn": 4,
     "blue_max": 2,
     "blue_gain": 1,
-    "description": "Red combo (locked).",
-    "description_zh": "体力连击（需解锁）。"
+    "starting_gold": 50,
+    "tower_spirit_id": "shadow_serpent",
+    "starting_relics": [],
+    "starting_deck": [
+      "strike", "strike", "strike", "strike", "strike", "strike",
+      "defend", "defend",
+      "twin_strike", "twin_strike"
+    ],
+    "description": "High Red per turn. Strike and combo attacks.",
+    "description_zh": "每回合体力多，打击与连击向构筑。"
   }
 ]

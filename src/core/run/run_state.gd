@@ -2,9 +2,9 @@
 extends Node
 
 signal run_started
-signal floor_changed
 
-const STARTING_DECK: Array[String] = [
+## 无 JSON 配置时的兜底初始牌组
+const FALLBACK_DECK: Array[String] = [
 	"strike", "strike", "strike", "strike", "strike",
 	"defend", "defend", "defend", "defend",
 	"ember_slash",
@@ -24,17 +24,29 @@ var map_nodes: Array = []
 var current_node_id: int = 0
 
 
-func start_new_run() -> void:
+func start_new_run(selected_character_id: String = "") -> void:
+	if selected_character_id != "":
+		character_id = selected_character_id
 	var cfg := GameDB.get_character(character_id)
+	if cfg.is_empty():
+		character_id = "void_knight"
+		cfg = GameDB.get_character(character_id)
 	max_hp = int(cfg.get("max_hp", 70))
 	current_hp = max_hp
-	gold = 50
+	gold = int(cfg.get("starting_gold", 50))
 	floor_index = 0
-	deck_ids = STARTING_DECK.duplicate()
-	relic_ids.clear()
-	relic_ids.append("knight_oath")
+	deck_ids = _starting_deck_from_cfg(cfg)
+	relic_ids = CharacterRoster.get_starting_relics(cfg)
+	tower_spirit_id = str(cfg.get("tower_spirit_id", "ash_raven"))
 	current_node_id = 0
 	run_started.emit()
+
+
+func _starting_deck_from_cfg(cfg: Dictionary) -> Array[String]:
+	var deck := CharacterRoster.get_starting_deck(cfg)
+	if deck.is_empty():
+		return FALLBACK_DECK.duplicate()
+	return deck
 
 
 func has_relic(id: String) -> bool:
@@ -50,6 +62,41 @@ func build_deck_instances() -> Array[CardInstance]:
 
 func add_card_to_deck(card_id: String) -> void:
 	deck_ids.append(card_id)
+
+
+func add_relic(relic_id: String) -> void:
+	if relic_id not in relic_ids:
+		relic_ids.append(relic_id)
+
+
+## 牌组中去重后的卡牌 id（保持首次出现顺序）
+func get_unique_deck_ids() -> Array[String]:
+	var seen: Dictionary = {}
+	var result: Array[String] = []
+	for cid in deck_ids:
+		if cid in seen:
+			continue
+		seen[cid] = true
+		result.append(cid)
+	return result
+
+
+func count_cards(card_id: String) -> int:
+	var n := 0
+	for cid in deck_ids:
+		if cid == card_id:
+			n += 1
+	return n
+
+
+## 将牌组中所有 from_id 替换为 to_id，返回替换张数
+func evolve_card_type(from_id: String, to_id: String) -> int:
+	var replaced := 0
+	for i in deck_ids.size():
+		if deck_ids[i] == from_id:
+			deck_ids[i] = to_id
+			replaced += 1
+	return replaced
 
 
 func heal_percent(p: float) -> void:

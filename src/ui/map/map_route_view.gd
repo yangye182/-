@@ -36,10 +36,10 @@ func _compute_layout() -> void:
 	var max_floor := 0
 	for n in _nodes:
 		var nd: MapNodeData = n
-		max_floor = maxi(max_floor, nd.floor)
-		if not by_floor.has(nd.floor):
-			by_floor[nd.floor] = []
-		by_floor[nd.floor].append(nd)
+		max_floor = maxi(max_floor, nd.layer_index)
+		if not by_floor.has(nd.layer_index):
+			by_floor[nd.layer_index] = []
+		by_floor[nd.layer_index].append(nd)
 	var floors: Array[int] = []
 	for key in by_floor.keys():
 		floors.append(int(key))
@@ -156,8 +156,8 @@ func _draw() -> void:
 	var by_floor: Dictionary = {}
 	for n in _nodes:
 		var nd: MapNodeData = n
-		if not by_floor.has(nd.floor):
-			by_floor[nd.floor] = nd
+		if not by_floor.has(nd.layer_index):
+			by_floor[nd.layer_index] = nd
 	var floors: Array[int] = []
 	for key in by_floor.keys():
 		floors.append(int(key))
