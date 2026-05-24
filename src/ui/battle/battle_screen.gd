@@ -3,8 +3,14 @@ extends Control
 
 const CardWidgetScene := preload("res://src/ui/card/card_widget.gd")
 const PileViewOverlayScene := preload("res://src/ui/battle/pile_view_overlay.gd")
+const TargetingArrowOverlayScene := preload("res://src/ui/battle/targeting_arrow_overlay.gd")
 
-enum TargetMode { IDLE, SELECTING_TARGET }
+## 手牌区最多展示张数；缩放后约 10 张可同屏
+const HAND_MAX_CARDS := 10
+const HAND_CARD_SCALE := 0.5
+const HAND_SLOT_WIDTH := 168.0 * HAND_CARD_SCALE + 4.0
+
+enum TargetMode { IDLE, SELECTING_TARGET, DRAGGING_CARD }
 
 # 核心引用
 var battle_manager: BattleManager
@@ -35,7 +41,11 @@ var _log_label: Label
 
 var _hand_scroll: ScrollContainer
 var _hand_container: HBoxContainer
+var _hand_layer: Control
 var _end_turn_btn: Button
+var _targeting_arrow: TargetingArrowOverlay
+var _dragging_hand_index: int = -1
+var _drag_hover_enemy: int = -1
 
 var _victory_dim: ColorRect
 var _victory_panel: Panel
@@ -46,6 +56,7 @@ var _continue_btn: Button
 func _ready() -> void:
 	_build_ui()
 	_connect_signals()
+	set_process_unhandled_input(true)
 
 
 func _connect_signals() -> void:
@@ -95,6 +106,13 @@ func _build_ui() -> void:
 	_build_bottom_bar(main_vbox)
 	_build_victory_overlay()
 	_build_pile_overlay()
+	_build_targeting_arrow()
+
+
+func _build_targeting_arrow() -> void:
+	_targeting_arrow = TargetingArrowOverlayScene.new()
+	_targeting_arrow.z_index = 40
+	add_child(_targeting_arrow)
 
 
 func _build_top_bar(parent: VBoxContainer) -> void:
@@ -225,20 +243,31 @@ func _build_middle_area(parent: VBoxContainer) -> void:
 
 func _build_bottom_bar(parent: VBoxContainer) -> void:
 	var bottom := HBoxContainer.new()
-	bottom.custom_minimum_size = Vector2(0, 260)
+	# 缩放手牌高度 + 余量
+	bottom.custom_minimum_size = Vector2(0, 228.0 * HAND_CARD_SCALE + 36.0)
 	bottom.add_theme_constant_override("separation", 8)
 	parent.add_child(bottom)
 
-	# 手牌滚动区
+	_hand_layer = Control.new()
+	_hand_layer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_hand_layer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	bottom.add_child(_hand_layer)
+
 	_hand_scroll = ScrollContainer.new()
-	_hand_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_hand_scroll.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_hand_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	_hand_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	bottom.add_child(_hand_scroll)
+	_hand_layer.add_child(_hand_scroll)
 
 	_hand_container = HBoxContainer.new()
-	_hand_container.add_theme_constant_override("separation", 8)
-	_hand_container.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_hand_container.alignment = BoxContainer.ALIGNMENT_END
+	_hand_container.add_theme_constant_override("separation", 4)
+	_hand_container.size_flags_vertical = Control.SIZE_SHRINK_END
+	# 单卡占位 = 缩放后宽度 + 间距（与 CardWidget.apply_hand_layout 一致）
+	_hand_container.custom_minimum_size = Vector2(
+		HAND_MAX_CARDS * HAND_SLOT_WIDTH,
+		228.0 * HAND_CARD_SCALE + 8.0
+	)
 	_hand_scroll.add_child(_hand_container)
 
 	# 结束回合按钮
@@ -530,6 +559,7 @@ func _create_enemy_widget(enemy: Combatant, index: int) -> Panel:
 
 
 func _refresh_hand() -> void:
+	_cancel_card_drag()
 	for c in _hand_container.get_children():
 		c.queue_free()
 
@@ -541,9 +571,14 @@ func _refresh_hand() -> void:
 			continue
 		var card_ui := CardWidgetScene.new()
 		var playable := battle_manager.can_play_card(i)
-		card_ui.setup(data, not playable)
+		card_ui.setup(data, not playable, -1, playable)
+		card_ui.apply_hand_layout(HAND_CARD_SCALE)
+		card_ui.set_meta("hand_index", i)
 		var cap_i := i
 		card_ui.card_pressed.connect(func(): _on_card_pressed(cap_i))
+		card_ui.card_drag_started.connect(func(): _on_card_drag_started(cap_i))
+		card_ui.card_drag_moved.connect(_on_card_drag_moved)
+		card_ui.card_drag_ended.connect(_on_card_drag_ended)
 		_hand_container.add_child(card_ui)
 
 
@@ -573,6 +608,8 @@ func _on_card_pressed(hand_index: int) -> void:
 
 
 func _on_enemy_clicked(enemy_index: int) -> void:
+	if _target_mode == TargetMode.DRAGGING_CARD:
+		return
 	if _target_mode != TargetMode.SELECTING_TARGET:
 		return
 	if enemy_index < 0 or enemy_index >= battle_manager.enemies.size():
@@ -590,8 +627,160 @@ func _cancel_target_mode() -> void:
 		_highlight_enemies(false)
 		if _selected_card_index >= 0:
 			_highlight_card(_selected_card_index, false)
+	_cancel_card_drag()
 	_target_mode = TargetMode.IDLE
 	_selected_card_index = -1
+
+
+func _cancel_card_drag() -> void:
+	if _dragging_hand_index >= 0:
+		_highlight_card(_dragging_hand_index, false)
+	for c in _hand_container.get_children():
+		if c is CardWidget:
+			(c as CardWidget).cancel_drag()
+	_dragging_hand_index = -1
+	_drag_hover_enemy = -1
+	_targeting_arrow.hide_arrow()
+	_highlight_enemies(false)
+
+
+func _on_card_drag_started(hand_index: int) -> void:
+	if not battle_manager.can_play_card(hand_index):
+		return
+	if _target_mode == TargetMode.SELECTING_TARGET:
+		_highlight_enemies(false)
+		if _selected_card_index >= 0:
+			_highlight_card(_selected_card_index, false)
+	_dragging_hand_index = hand_index
+	_target_mode = TargetMode.DRAGGING_CARD
+	_selected_card_index = hand_index
+	_highlight_card(hand_index, true)
+
+
+func _on_card_drag_moved(global_pos: Vector2) -> void:
+	if _dragging_hand_index < 0:
+		return
+	_update_drag_arrow(global_pos)
+
+
+func _on_card_drag_ended(global_pos: Vector2) -> void:
+	if _dragging_hand_index < 0:
+		return
+	_finish_card_drag(global_pos)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if _dragging_hand_index < 0:
+		return
+	if event is InputEventMouseMotion:
+		_update_drag_arrow((event as InputEventMouseMotion).global_position)
+	elif event is InputEventMouseButton:
+		var mb := event as InputEventMouseButton
+		if not mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT:
+			_finish_card_drag(mb.global_position)
+
+
+func _card_needs_target_arrow(data: CardData) -> bool:
+	return data != null and data.target == CardData.TargetType.ENEMY
+
+
+func _update_drag_arrow(global_pos: Vector2) -> void:
+	var data := battle_manager.deck.hand[_dragging_hand_index].get_data()
+	if data == null:
+		_targeting_arrow.hide_arrow()
+		return
+
+	# 非指向性（防御、群伤、自身等）：不画箭头，仅提示可打出区域
+	if not _card_needs_target_arrow(data):
+		_targeting_arrow.hide_arrow()
+		_highlight_enemies(false)
+		_drag_hover_enemy = -1
+		var in_zone := _is_in_play_zone(global_pos)
+		_highlight_card(_dragging_hand_index, in_zone)
+		return
+
+	var card := _get_hand_card_widget(_dragging_hand_index)
+	if card == null:
+		return
+	var from_pos := card.get_center_global()
+	var enemy_idx := _enemy_index_at_global(global_pos)
+	_drag_hover_enemy = enemy_idx
+	var valid := enemy_idx >= 0
+	_targeting_arrow.show_arrow(from_pos, global_pos, valid)
+	_highlight_enemies(false)
+	if enemy_idx >= 0:
+		_highlight_enemy_index(enemy_idx, true)
+
+
+func _finish_card_drag(global_pos: Vector2) -> void:
+	var hand_index := _dragging_hand_index
+	if hand_index < 0:
+		return
+	var data := battle_manager.deck.hand[hand_index].get_data()
+	_cancel_card_drag()
+	if data == null or not battle_manager.can_play_card(hand_index):
+		_refresh_hand()
+		return
+
+	match data.target:
+		CardData.TargetType.ENEMY:
+			var enemy_idx := _enemy_index_at_global(global_pos)
+			if enemy_idx >= 0:
+				battle_manager.play_card(hand_index, enemy_idx)
+				_refresh_all()
+			else:
+				_refresh_hand()
+		CardData.TargetType.ALL_ENEMIES, CardData.TargetType.SELF, CardData.TargetType.NONE:
+			if _is_in_play_zone(global_pos):
+				battle_manager.play_card(hand_index, 0)
+				_refresh_all()
+			else:
+				_refresh_hand()
+
+
+func _get_hand_card_widget(hand_index: int) -> CardWidget:
+	for c in _hand_container.get_children():
+		if int(c.get_meta("hand_index", -1)) == hand_index and c is CardWidget:
+			return c as CardWidget
+	return null
+
+
+func _enemy_index_at_global(global_pos: Vector2) -> int:
+	for panel in _enemy_widgets:
+		var idx: int = panel.get_meta("enemy_index", -1)
+		if idx < 0 or idx >= battle_manager.enemies.size():
+			continue
+		if battle_manager.enemies[idx].is_dead:
+			continue
+		if panel.get_global_rect().has_point(global_pos):
+			return idx
+	return -1
+
+
+func _is_in_play_zone(global_pos: Vector2) -> bool:
+	var hand_rect := _hand_scroll.get_global_rect()
+	var top_y := hand_rect.position.y - 12.0
+	return global_pos.y < top_y
+
+
+func _highlight_enemy_index(index: int, highlight: bool) -> void:
+	if index < 0 or index >= _enemy_widgets.size():
+		return
+	var panel := _enemy_widgets[index]
+	if highlight:
+		var style := StyleBoxFlat.new()
+		style.bg_color = Color(0.2, 0.2, 0.28)
+		style.set_corner_radius_all(10)
+		style.set_border_width_all(3)
+		style.border_color = Color(1.0, 0.9, 0.3, 1.0)
+		panel.add_theme_stylebox_override("panel", style)
+	else:
+		var style := StyleBoxFlat.new()
+		style.bg_color = Color(0.12, 0.12, 0.16)
+		style.set_corner_radius_all(10)
+		style.set_border_width_all(2)
+		style.border_color = Color(0.25, 0.25, 0.3)
+		panel.add_theme_stylebox_override("panel", style)
 
 
 func _highlight_enemies(highlight: bool) -> void:
@@ -644,6 +833,7 @@ func _on_enemy_mouse_exited(_panel: Panel) -> void:
 
 func _on_end_turn() -> void:
 	_cancel_target_mode()
+	_cancel_card_drag()
 	battle_manager.end_player_turn()
 
 

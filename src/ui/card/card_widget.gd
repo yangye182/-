@@ -3,8 +3,12 @@ class_name CardWidget
 extends PanelContainer
 
 signal card_pressed
+signal card_drag_started
+signal card_drag_moved(global_pos: Vector2)
+signal card_drag_ended(global_pos: Vector2)
 
 const CARD_SIZE := Vector2(168, 228)
+const DRAG_THRESHOLD := 10.0
 
 var _data: CardData = null
 var _disabled: bool = false
@@ -21,10 +25,17 @@ var _desc_label: Label
 var _stats_label: Label
 var _price_label: Label
 
+var _enable_drag: bool = false
+var _drag_active: bool = false
+var _press_global: Vector2 = Vector2.ZERO
+var _hand_scale: float = 1.0
 
-func setup(card_data: CardData, disabled: bool = false, price: int = -1) -> void:
+
+func setup(card_data: CardData, disabled: bool = false, price: int = -1, enable_drag: bool = false) -> void:
 	_data = card_data
 	_disabled = disabled
+	_enable_drag = enable_drag and not disabled
+	_drag_active = false
 	_hovered = false
 	_selected = false
 	_ensure_ui()
@@ -128,6 +139,52 @@ func set_selected(s: bool) -> void:
 	_update_visual_state()
 
 
+## 战斗手牌：按比例缩小卡面、图标与字号（布局占位也缩小）
+func apply_hand_layout(scale_factor: float) -> void:
+	_hand_scale = clampf(scale_factor, 0.4, 1.0)
+	custom_minimum_size = CARD_SIZE * _hand_scale
+	pivot_offset = Vector2(custom_minimum_size.x * 0.5, custom_minimum_size.y)
+	_apply_compact_metrics(_hand_scale)
+	_update_visual_state()
+
+
+func _apply_compact_metrics(s: float) -> void:
+	if not _ui_built:
+		return
+	var ml := int(12.0 * s)
+	var mt := int(10.0 * s)
+	var margin := get_child(1) as MarginContainer
+	if margin:
+		margin.add_theme_constant_override("margin_left", ml)
+		margin.add_theme_constant_override("margin_right", ml)
+		margin.add_theme_constant_override("margin_top", mt)
+		margin.add_theme_constant_override("margin_bottom", mt)
+	if _icon_tex:
+		# 手牌区图标再缩小一档（非手牌 _hand_scale=1 时保持原尺寸）
+		var icon_mul := 0.58 if _hand_scale < 0.99 else 1.0
+		_icon_tex.custom_minimum_size = Vector2(72, 72) * s * icon_mul
+	if _desc_label:
+		_desc_label.custom_minimum_size = Vector2(130, 44) * s
+	UiFonts.apply_font_to(_name_label, maxi(9, int(14.0 * s)))
+	UiFonts.apply_font_to(_type_label, maxi(8, int(10.0 * s)))
+	UiFonts.apply_font_to(_cost_label, maxi(8, int(12.0 * s)))
+	UiFonts.apply_font_to(_desc_label, maxi(8, int(10.0 * s)))
+	UiFonts.apply_font_to(_stats_label, maxi(8, int(11.0 * s)))
+
+
+func get_center_global() -> Vector2:
+	return get_global_rect().get_center()
+
+
+func cancel_drag() -> void:
+	_drag_active = false
+	_update_visual_state()
+
+
+func is_dragging() -> bool:
+	return _drag_active
+
+
 func _on_mouse_entered() -> void:
 	if _disabled:
 		return
@@ -141,21 +198,32 @@ func _on_mouse_exited() -> void:
 
 
 func _update_visual_state() -> void:
+	var bump := 1.0
 	if _disabled:
 		modulate = Color(0.55, 0.55, 0.6, 1.0)
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
-		scale = Vector2(1.0, 1.0)
-		return
-	mouse_filter = Control.MOUSE_FILTER_STOP
-	if _selected:
-		scale = Vector2(1.08, 1.08)
+	elif _drag_active:
+		bump = 1.06
+		modulate = Color(1.0, 1.0, 0.9, 1.0)
+		mouse_filter = Control.MOUSE_FILTER_STOP
+		z_index = 10
+	elif _selected:
+		bump = 1.08
 		modulate = Color(1.0, 1.0, 0.85, 1.0)
+		mouse_filter = Control.MOUSE_FILTER_STOP
+		z_index = 2
 	elif _hovered:
-		scale = Vector2(1.04, 1.04)
+		bump = 1.04
 		modulate = Color.WHITE
+		mouse_filter = Control.MOUSE_FILTER_STOP
+		z_index = 1
 	else:
-		scale = Vector2(1.0, 1.0)
 		modulate = Color.WHITE
+		mouse_filter = Control.MOUSE_FILTER_STOP
+		z_index = 0
+	# 布局已按 _hand_scale 缩小，悬停/拖拽仅用轻微 scale 放大
+	scale = Vector2(bump, bump)
+	pivot_offset = Vector2(custom_minimum_size.x * 0.5, custom_minimum_size.y)
 
 
 func _apply_frame_texture(card_type: CardData.CardType) -> void:
@@ -221,5 +289,29 @@ func _on_gui_input(event: InputEvent) -> void:
 		return
 	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
-		if mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT:
-			card_pressed.emit()
+		if mb.button_index != MOUSE_BUTTON_LEFT:
+			return
+		if mb.pressed:
+			_press_global = mb.global_position
+			_drag_active = false
+		else:
+			if _drag_active:
+				card_drag_ended.emit(mb.global_position)
+				_drag_active = false
+				_update_visual_state()
+				accept_event()
+			else:
+				card_pressed.emit()
+				accept_event()
+	elif event is InputEventMouseMotion and _enable_drag:
+		var mm := event as InputEventMouseMotion
+		if (mm.button_mask & MOUSE_BUTTON_MASK_LEFT) == 0:
+			return
+		if not _drag_active:
+			if _press_global.distance_to(mm.global_position) < DRAG_THRESHOLD:
+				return
+			_drag_active = true
+			_update_visual_state()
+			card_drag_started.emit()
+		card_drag_moved.emit(mm.global_position)
+		accept_event()
